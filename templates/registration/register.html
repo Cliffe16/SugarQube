@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Register | SugarQube{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title text-center">Create an Account</h2>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-primary w-100">Register</button>
+                </form>
+                 <div class="text-center mt-3">
+                    <small class="text-muted">
+                        Already have an account? <a href="{% url 'login' %}">Log In</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

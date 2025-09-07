@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}{{ listing.sugar_type }} | SugarQube{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2>{{ listing.sugar_type }}</h2>
+        <h4 class="text-muted">From {{ listing.origin }}</h4>
+        <hr>
+        
+        <h4>Specifications</h4>
+        <p>{{ listing.specifications|linebreaks }}</p>
+
+        <h4>Trading Details</h4>
+        <ul>
+            <li><strong>Price:</strong> ${{ listing.price_per_bag }} / 50kg bag</li>
+            <li><strong>Available Stock:</strong> {{ listing.quantity_available }} bags</li>
+            <li><strong>Minimum Order:</strong> {{ listing.minimum_order_quantity }} bags</li>
+        </ul>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Place an Order</h5>
+                {% if user.is_authenticated and user.is_verified_buyer %}
+                <form method="POST" action="{% url 'place_order' listing.pk %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ form.quantity.label_tag }}
+                        {{ form.quantity }}
+                        {% if form.quantity.errors %}
+                            <div class="text-danger small">{{ form.quantity.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Submit Order</button>
+                </form>
+                {% elif user.is_authenticated %}
+                <div class="alert alert-warning">
+                    Your account must be verified by an administrator before you can place orders.
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <a href="{% url 'login' %}?next={{ request.path }}">Login</a> to place an order.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

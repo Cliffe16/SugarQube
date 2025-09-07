@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard | SugarQube{% endblock %}
+
+{% block content %}
+    <div class="dashboard-card">
+        
+        <div class="kpi-grid">
+            <div class="kpi-box">
+                <h4>Current Price</h4>
+                <div class="kpi-value">${{ latest_price }}</div>
+            </div>
+            <div class="kpi-box">
+                <h4>Daily Change</h4>
+                <div class="kpi-value {% if daily_change > 0 %}text-success{% else %}text-danger{% endif %}">
+                    ${{ daily_change|floatformat:2 }}
+                </div>
+            </div>
+            <div class="kpi-box">
+                <h4>Annual Range</h4>
+                <div class="kpi-value" style="font-size: 1.25rem;">${{ annual_min }} – ${{ annual_max }}</div>
+            </div>
+            <div class="kpi-box">
+                <h4>Exchange Rate</h4>
+                <div class="kpi-value">{{ exchange_rate }}</div>
+            </div>
+        </div>
+        
+        <hr class="my-4">
+
+        <div>
+            <h3 class="mb-3 text-center text-muted">Historical Price Chart</h3>
+            <div id="container" style="height: 500px; min-width: 310px"></div>
+        </div>
+
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://code.highcharts.com/stock/highstock.js"></script>
+<script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const data = {{ chart_data|safe }};
+
+    Highcharts.stockChart('container', {
+        // --- Chart styling translated from your R app ---
+
+        chart: {
+            backgroundColor: '#ffffff',
+            zoomType: 'xy',
+            pinchType: 'xy'
+        },
+
+        colors: ['#4CAF50'],
+
+        credits: {
+            enabled: false
+        },
+
+        rangeSelector: {
+            selected: 6, // Default to 'MAX'
+            buttons: [
+                { type: 'month', count: 1, text: '1M' },
+                { type: 'month', count: 3, text: '3M' },
+                { type: 'month', count: 6, text: '6M' },
+                { type: 'ytd', text: 'YTD' },
+                { type: 'year', count: 1, text: '1Y' },
+                { type: 'year', count: 5, text: '5Y' },
+                { type: 'all', text: 'MAX' }
+            ],
+            buttonTheme: {
+                fill: '#ffffff',
+                style: { fontSize: '15px' },
+                states: {
+                    hover: {
+                        fill: '#e0e0e0',
+                        style: { color: '#4CAF50' }
+                    },
+                    select: {
+                        fill: '#4CAF50',
+                        style: { color: '#ffffff' }
+                    }
+                }
+            },
+            inputStyle: { fontSize: '15px' }
+        },
+        
+        title: {
+            text: null
+        },
+
+        navigator: { 
+            enabled: false
+        },
+
+        xAxis: {
+            title: { text: null },
+            type: "datetime",
+            dateTimeLabelFormats: {
+                month: '%b \'%y',
+                year: '%Y'
+            },
+            labels: { style: { fontSize: '13px' } },
+            crosshair: {
+                width: 1,
+                color: '#616161',
+                dashStyle: 'Solid'
+            },
+            gridLineWidth: 1,
+            gridLineColor: "#ededed",
+            lineWidth: 2,
+            lineColor: "#C0C0C0"
+        },
+
+        yAxis: {
+            title: { text: null },
+            labels: {
+                format: 'KES {value:,.0f}',
+                style: { fontSize: '13px' }
+            },
+            tickAmount: 4,
+            gridLineWidth: 1,
+            gridLineColor: "#ededed",
+            lineWidth: 2,
+            lineColor: "#C0C0C0",
+            opposite: false
+        },
+
+        tooltip: {
+            pointFormat: '<span style="color:{point.color}">\u25CF</span> {series.name}: <b>KES {point.y:,.2f}</b><br/>',
+            shared: true,
+            xDateFormat: '%a, %b %e, %Y',
+            style: { fontSize: '14px' }
+        },
+
+        plotOptions: {
+            series: {
+                marker: {
+                    enabled: false,
+                    states: {
+                        hover: { enabled: true, radius: 5 }
+                    }
+                },
+                states: {
+                    hover: { halo: { size: 5 } }
+                }
+            }
+        },
+
+        exporting: {
+            enabled: true,
+            filename: "Sugar_Prices_Nairobi"
+        },
+        
+        series: [{
+            name: 'Average Sugar Price',
+            data: data,
+            tooltip: { valueDecimals: 2 }
+        }]
+    });
+});
+</script>
+{% endblock %}

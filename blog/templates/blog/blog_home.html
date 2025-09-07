@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Blog | SugarQube{% endblock %}
+
+{% block content %}
+    <h1 class="page-header">Industry Insights</h1>
+
+    <ul class="nav nav-pills mb-4">
+        <li class="nav-item">
+            <a class="nav-link active" href="#">All Posts</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">By Category</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">By Tag</a>
+        </li>
+    </ul>
+
+    {% for post in posts %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title"><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></h5>
+                <p class="card-text">{{ post.content|safe|truncatewords:50 }}</p>
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}
