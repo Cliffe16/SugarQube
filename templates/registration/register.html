@@ -1,24 +1,61 @@
-{% extends "base.html" %}
-{% block title %}Register | SugarQube{% endblock %}
-
-{% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-body">
-                <h2 class="card-title text-center">Create an Account</h2>
-                <form method="post">
-                    {% csrf_token %}
-                    {{ form.as_p }}
-                    <button type="submit" class="btn btn-primary w-100">Register</button>
-                </form>
-                 <div class="text-center mt-3">
-                    <small class="text-muted">
-                        Already have an account? <a href="{% url 'login' %}">Log In</a>
-                    </small>
-                </div>
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | SugarQube</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f9f9ff 0%, #f0f4ff 100%);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen py-12">
+    <div class="w-full max-w-md p-8 space-y-8 bg-white rounded-xl shadow-lg">
+        <div class="text-center">
+            <div class="flex justify-center items-center mb-4">
+                <i data-feather="box" class="h-10 w-10 text-green-600"></i>
+                <h1 class="ml-3 text-3xl font-bold text-gray-900">SugarQube</h1>
             </div>
+            <h2 class="mt-6 text-2xl font-semibold text-gray-700">Create an Account</h2>
+            <p class="mt-2 text-sm text-gray-500">Join the platform to start trading</p>
+        </div>
+        
+        <form class="mt-8 space-y-6" method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="mb-4">
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
+                    <input type="{{ field.field.widget.input_type }}" name="{{ field.name }}" id="{{ field.id_for_label }}" class="appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                    {% if field.help_text %}
+                        <p class="mt-1 text-xs text-gray-500">{{ field.help_text|safe }}</p>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            <div>
+                <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    Register
+                </button>
+            </div>
+        </form>
+         <div class="text-center mt-4">
+            <p class="text-sm text-gray-600">
+                Already have an account?
+                <a href="{% url 'login' %}" class="font-medium text-green-600 hover:text-green-500">Log In</a>
+            </p>
         </div>
     </div>
-</div>
-{% endblock %}
+     <script>
+        feather.replace();
+    </script>
+</body>
+</html>

@@ -11,9 +11,12 @@ body {
     flex-direction: column;
 }
 .main-content-area {
-    flex: 1 0 auto; /* This makes the content area grow to fill available space */
+    flex: 1 0 auto; /* This makes the content area grow */
     padding-top: 106px; 
+    display: flex;
+    flex-direction: column;
 }
+
 .footer {
     flex-shrink: 0; /* This prevents the footer from shrinking */
 }
@@ -116,6 +119,7 @@ body {
     border-radius: 0.75rem;
     box-shadow: 0 5px 15px rgba(0,0,0,0.05);
     border: 1px solid #e9ecef;
+    min-height: 400px;
 }
 .kpi-grid {
     display: grid;

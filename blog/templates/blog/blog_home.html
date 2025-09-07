@@ -2,26 +2,24 @@
 {% block title %}Blog | SugarQube{% endblock %}
 
 {% block content %}
-    <h1 class="page-header">Industry Insights</h1>
-
-    <ul class="nav nav-pills mb-4">
-        <li class="nav-item">
-            <a class="nav-link active" href="#">All Posts</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="#">By Category</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="#">By Tag</a>
-        </li>
-    </ul>
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Industry Insights</h1>
 
     {% for post in posts %}
-        <div class="card mb-3">
-            <div class="card-body">
-                <h5 class="card-title"><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></h5>
-                <p class="card-text">{{ post.content|safe|truncatewords:50 }}</p>
+        <div class="bg-white rounded-lg shadow-md mb-6 overflow-hidden hover:shadow-xl transition-shadow duration-300">
+            <div class="p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">
+                    <a href="{% url 'post_detail' post.pk %}" class="hover:text-green-600">{{ post.title }}</a>
+                </h2>
+                <div class="text-sm text-gray-500 mb-4">
+                    <span>By {{ post.author.username }}</span> | <span>{{ post.created_at|date:"F j, Y" }}</span>
+                </div>
+                <div class="text-gray-700 leading-relaxed">
+                    {{ post.content|safe|truncatewords_html:50 }}
+                </div>
+                 <a href="{% url 'post_detail' post.pk %}" class="inline-block mt-4 text-green-600 hover:text-green-800 font-semibold">Read More &rarr;</a>
             </div>
         </div>
+    {% empty %}
+        <p class="text-center text-gray-500">No blog posts available yet.</p>
     {% endfor %}
 {% endblock %}

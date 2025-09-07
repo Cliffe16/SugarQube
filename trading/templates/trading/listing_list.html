@@ -2,29 +2,27 @@
 {% block title %}Sugar Trading | SugarQube{% endblock %}
 
 {% block content %}
-<h1 class="mb-4">Sugar Trading Marketplace</h1>
+<h1 class="text-3xl font-bold text-gray-800 mb-6">Sugar Trading Marketplace</h1>
 
-<div class="row">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for listing in listings %}
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body d-flex flex-column">
-                <h5 class="card-title">{{ listing.sugar_type }}</h5>
-                <h6 class="card-subtitle mb-2 text-muted">Origin: {{ listing.origin }}</h6>
-                <p class="card-text fs-4 fw-bold text-success">${{ listing.price_per_bag }} <span class="fs-6 fw-normal text-muted">/ 50kg bag</span></p>
-                <ul class="list-unstyled mt-3 mb-4">
-                    <li><i class="bi bi-box-seam me-2"></i><strong>Available:</strong> {{ listing.quantity_available }} bags</li>
-                    <li><i class="bi bi-cart-check me-2"></i><strong>Min. Order:</strong> {{ listing.minimum_order_quantity }} bags</li>
-                </ul>
-                <div class="mt-auto">
-                    <a href="{% url 'listing_detail' listing.pk %}" class="btn btn-primary w-100">View & Place Order</a>
-                </div>
-            </div>
+    <div class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col hover:shadow-xl transition-shadow duration-300">
+        <div class="p-6 flex-grow">
+            <h2 class="text-xl font-bold text-gray-900">{{ listing.sugar_type }}</h2>
+            <p class="text-sm text-gray-500 mb-4">Origin: {{ listing.origin }}</p>
+            <p class="text-3xl font-bold text-green-600">KES {{ listing.price_per_bag }} <span class="text-base font-normal text-gray-500">/ 50kg bag</span></p>
+            <ul class="mt-4 space-y-2 text-gray-700">
+                <li class="flex items-center"><i data-feather="box" class="h-5 w-5 mr-2 text-gray-400"></i><strong>Available:</strong><span class="ml-2">{{ listing.quantity_available }} bags</span></li>
+                <li class="flex items-center"><i data-feather="shopping-cart" class="h-5 w-5 mr-2 text-gray-400"></i><strong>Min. Order:</strong><span class="ml-2">{{ listing.minimum_order_quantity }} bags</span></li>
+            </ul>
+        </div>
+        <div class="p-6 bg-gray-50">
+            <a href="{% url 'listing_detail' listing.pk %}" class="block w-full text-center bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">View & Place Order</a>
         </div>
     </div>
     {% empty %}
-    <div class="col">
-        <p class="text-center">No sugar listings are available at the moment.</p>
+    <div class="col-span-1 md:col-span-2 lg:col-span-3 text-center py-12">
+        <p class="text-gray-500">No sugar listings are available at the moment.</p>
     </div>
     {% endfor %}
 </div>

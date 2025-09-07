@@ -131,3 +131,8 @@ CKEDITOR_CONFIGS = {
 
 # Email Configuration (for notifications)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # For development
+
+# Authentication redirects
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = '/'  # This will send users to landing page after logout
+LOGIN_URL = '/accounts/login/'

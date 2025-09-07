@@ -1,27 +1,63 @@
-{% extends "base.html" %}
-{% block title %}Login | SugarQube{% endblock %}
-
-{% block auth_content %}
-<div class="card login-card">
-    <div class="card-body">
-        <h1 class="login-title">📈 SugarQube</h1>
-        <form method="post">
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | SugarQube</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f9f9ff 0%, #f0f4ff 100%);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+    <div class="w-full max-w-md p-8 space-y-8 bg-white rounded-xl shadow-lg">
+        <div class="text-center">
+            <div class="flex justify-center items-center mb-4">
+                <i data-feather="box" class="h-10 w-10 text-green-600"></i>
+                <h1 class="ml-3 text-3xl font-bold text-gray-900">SugarQube</h1>
+            </div>
+            <h2 class="mt-6 text-2xl font-semibold text-gray-700">Welcome Back</h2>
+            <p class="mt-2 text-sm text-gray-500">Please sign in to your account</p>
+        </div>
+        
+        <form class="mt-8 space-y-6" method="post">
             {% csrf_token %}
-            <div class="mb-3">
-                <label for="id_username" class="form-label">Username</label>
-                <input type="text" name="username" class="form-control form-control-lg" id="id_username" required>
+             {% if form.errors %}
+                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
+                    <p>Your username and password didn't match. Please try again.</p>
+                </div>
+            {% endif %}
+            <div class="space-y-4 rounded-md shadow-sm">
+                <div>
+                    <label for="id_username" class="sr-only">Username</label>
+                    <input id="id_username" name="username" type="text" required class="appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" placeholder="Username">
+                </div>
+                <div>
+                    <label for="id_password" class="sr-only">Password</label>
+                    <input id="id_password" name="password" type="password" required class="appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" placeholder="Password">
+                </div>
             </div>
-            <div class="mb-3">
-                <label for="id_password" class="form-label">Password</label>
-                <input type="password" name="password" class="form-control form-control-lg" id="id_password" required>
+            <div>
+                <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    Sign in
+                </button>
             </div>
-            <button type="submit" class="btn btn-success btn-lg w-100 mt-3">Login</button>
         </form>
         <div class="text-center mt-4">
-            <small class="text-muted">
-                Need an account? <a href="{% url 'register' %}">Register Now</a>
-            </small>
+            <p class="text-sm text-gray-600">
+                Need an account?
+                <a href="{% url 'register' %}" class="font-medium text-green-600 hover:text-green-500">Register Now</a>
+            </p>
         </div>
     </div>
-</div>
-{% endblock %}
+    <script>
+        feather.replace()
+    </script>
+</body>
+</html>
