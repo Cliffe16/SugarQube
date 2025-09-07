@@ -1,10 +1,11 @@
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 
-# Virtual Environment
+# Virtual environment
 venv/
-env/
 
 # Database
 *.sqlite3
