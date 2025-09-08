@@ -25,7 +25,13 @@
     </div>
     
     <div class="bg-white p-6 rounded-lg shadow-md">
-        <h3 class="mb-4 text-lg font-semibold text-center text-gray-600">Historical Price Chart</h3>
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-gray-600">Sugar Price Technical Analysis</h3>
+            <div class="flex space-x-2">
+                <button id="toggleIndicators" class="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200">Indicators</button>
+                <button id="toggleDrawing" class="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200">Drawing Tools</button>
+            </div>
+        </div>
         <div id="container" style="height: 500px; min-width: 310px"></div>
     </div>
 </div>
@@ -34,45 +40,117 @@
 {% block scripts %}
 <script src="https://code.highcharts.com/stock/highstock.js"></script>
 <script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/stock/modules/technical-indicators.js"></script>
+<script src="https://code.highcharts.com/stock/modules/annotations.js"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const data = {{ chart_data|safe }};
-
-    Highcharts.stockChart('container', {
-        chart: { backgroundColor: '#ffffff', zoomType: 'xy' },
-        colors: ['#10B981'],
-        credits: { enabled: false },
-        rangeSelector: {
-            selected: 6,
-            buttons: [
-                { type: 'month', count: 1, text: '1M' },
-                { type: 'month', count: 3, text: '3M' },
-                { type: 'month', count: 6, text: '6M' },
-                { type: 'ytd', text: 'YTD' },
-                { type: 'year', count: 1, text: '1Y' },
-                { type: 'all', text: 'MAX' }
-            ]
-        },
-        title: { text: null },
-        navigator: { enabled: false },
-        xAxis: { type: "datetime", gridLineColor: "#e5e7eb" },
-        yAxis: {
+    // Debug: Check if data exists
+    const rawData = {{ chart_data|safe }};
+    console.log('Raw chart data:', rawData);
+    
+    if (!rawData || rawData.length === 0) {
+        console.error('Chart data is empty or undefined');
+        document.getElementById('container').innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No data available</div>';
+        return;
+    }
+    
+    // Initialize with basic chart first
+    try {
+        const chart = Highcharts.stockChart('container', {
+            chart: { 
+                backgroundColor: '#ffffff', 
+                zoomType: 'xy',
+            },
+            colors: ['#10B981', '#FF9800', '#9C27B0'],
+            credits: { enabled: false },
+            rangeSelector: {
+                selected: 6,
+                buttons: [
+                    { type: 'month', count: 1, text: '1M' },
+                    { type: 'month', count: 3, text: '3M' },
+                    { type: 'month', count: 6, text: '6M' },
+                    { type: 'ytd', text: 'YTD' },
+                    { type: 'year', count: 1, text: '1Y' },
+                    { type: 'year', count: 5, text: '5Y' },
+                    { type: 'all', text: 'MAX' }
+                ]
+            },
             title: { text: null },
-            labels: { format: 'KES {value:,.0f}' },
-            gridLineColor: "#e5e7eb",
-            opposite: false
-        },
-        tooltip: {
-            pointFormat: '<span style="color:{point.color}">\u25CF</span> {series.name}: <b>KES {point.y:,.2f}</b><br/>',
-            shared: true,
-            xDateFormat: '%a, %b %e, %Y',
-        },
-        series: [{
-            name: 'Average Sugar Price',
-            data: data,
-            tooltip: { valueDecimals: 2 }
-        }]
-    });
+            navigator: { enabled: false },
+            xAxis: { type: "datetime", gridLineColor: "#e5e7eb" },
+            yAxis: [{
+                title: { text: 'Price (KES)' },
+                labels: { format: '{value:,.0f}' },
+                gridLineColor: "#e5e7eb",
+                opposite: false
+            }],
+            tooltip: {
+                split: true,
+                valueDecimals: 2
+            },
+            series: [{
+                name: 'Sugar Price',
+                data: rawData,
+                type: 'line',
+                id: 'primary',
+                tooltip: { valueDecimals: 2 }
+            }]
+        });
+
+        console.log('Basic chart created successfully');
+
+        // Add indicators after basic chart is created
+        setTimeout(() => {
+            try {
+                chart.addSeries({
+                    type: 'sma',
+                    linkedTo: 'primary',
+                    id: 'sma',
+                    params: { period: 14 },
+                    name: 'SMA (14)',
+                    visible: false // Start hidden
+                });
+
+                chart.addSeries({
+                    type: 'ema',
+                    linkedTo: 'primary',
+                    id: 'ema',
+                    params: { period: 20 },
+                    name: 'EMA (20)',
+                    visible: false // Start hidden
+                });
+
+                console.log('Technical indicators added successfully');
+            } catch (indicatorError) {
+                console.error('Error adding indicators:', indicatorError);
+            }
+        }, 100);
+
+        // Button event listeners
+        document.getElementById('toggleIndicators').addEventListener('click', function() {
+            try {
+                const sma = chart.get('sma');
+                const ema = chart.get('ema');
+                
+                if (sma && ema) {
+                    sma.setVisible(!sma.visible, false);
+                    ema.setVisible(!ema.visible, true);
+                }
+            } catch (error) {
+                console.error('Error toggling indicators:', error);
+            }
+        });
+
+        document.getElementById('toggleDrawing').addEventListener('click', function() {
+            // Simplified drawing toggle - just show a message for now
+            console.log('Drawing tools clicked - feature to be implemented');
+        });
+
+    } catch (error) {
+        console.error('Error creating chart:', error);
+        document.getElementById('container').innerHTML = '<div class="flex items-center justify-center h-full text-red-500">Error loading chart: ' + error.message + '</div>';
+    }
 });
 </script>
 {% endblock %}
