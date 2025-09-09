@@ -1,71 +1,147 @@
 {% extends 'base.html' %}
-{% block title %}Dashboard | SugarQube{% endblock %}
+{% block title %}Market Analysis | SugarQube{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-blue-500">
-            <h4 class="text-sm font-medium text-gray-500 uppercase">Current Price</h4>
-            <p class="text-3xl font-bold text-gray-900 mt-2">KES {{ latest_price|floatformat:2 }}</p>
-        </div>
-        <div class="bg-white p-5 rounded-lg shadow-md border-l-4 {% if daily_change > 0 %}border-green-500{% else %}border-red-500{% endif %}">
-            <h4 class="text-sm font-medium text-gray-500 uppercase">Daily Change</h4>
-            <p class="text-3xl font-bold mt-2 {% if daily_change > 0 %}text-green-600{% else %}text-red-600{% endif %}">
-                KES {{ daily_change|floatformat:2 }}
-            </p>
-        </div>
-        <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-yellow-500">
-            <h4 class="text-sm font-medium text-gray-500 uppercase">Annual Range</h4>
-            <p class="text-lg font-semibold text-gray-900 mt-2">KES {{ annual_min }} – {{ annual_max }}</p>
-        </div>
-        <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-purple-500">
-            <h4 class="text-sm font-medium text-gray-500 uppercase">Exchange Rate</h4>
-            <p class="text-3xl font-bold text-gray-900 mt-2">{{ exchange_rate }}</p>
-        </div>
-    </div>
-    
-    <div class="bg-white p-6 rounded-lg shadow-md">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold text-gray-600">Sugar Price Technical Analysis</h3>
-            <div class="flex space-x-2">
-                <button id="toggleIndicators" class="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200">Indicators</button>
-                <button id="toggleDrawing" class="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200">Drawing Tools</button>
+<div class="max-w-7xl mx-auto">
+        <div class="grid grid-cols-12 gap-6">
+            
+            <div class="col-span-9">
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-700 mb-1">PRICE CHART</h3>
+                            <h2 class="text-2xl font-bold text-indigo-900">Sugar No 11 chart</h2>
+                        </div>
+                        <button id="exportData" class="px-3 py-1 bg-gray-50 text-gray-700 rounded text-sm hover:bg-gray-100 transition-colors border border-gray-200">
+                            Export
+                        </button>
+                    </div>
+                    
+                    <div id="container" style="height: 500px; min-width: 310px"></div>
+                    
+                    <div class="mt-4 text-xs text-gray-500 text-center">
+                        <span>OPEN ACCOUNT TO UNLOCK CHART SETTINGS ▶</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-span-3 space-y-4">
+                
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
+                    <div class="text-sm text-gray-500 mb-1">PRICE</div>
+                    <div class="text-3xl font-bold text-gray-900 mb-2">{{ latest_price|floatformat:1 }}</div>
+                    <div class="flex items-center justify-center">
+                        <span class="text-sm {% if daily_change >= 0 %}text-green-600{% else %}text-red-600{% endif %} font-semibold">
+                            {% if daily_change > 0 %}▲{% elif daily_change < 0 %}▼{% endif %}
+                            {{ daily_change_percent|floatformat:2 }}%
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <div class="space-y-2">
+                        <button id="indicatorsBtn" class="px-4 py-2 bg-blue-50 text-blue-700 rounded text-sm hover:bg-blue-100 transition-colors border border-blue-200 w-full">
+                            Indicators
+                        </button>
+                        <button id="drawingToolsBtn" class="px-4 py-2 bg-green-50 text-green-700 rounded text-sm hover:bg-green-100 transition-colors border border-green-200 w-full">
+                            Drawing Tools
+                        </button>
+                    </div>
+                    
+                    <div id="indicatorsDropdown" class="hidden mt-3 p-3 bg-gray-50 rounded border">
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="toggleMA" title="Moving Averages" class="px-2 py-1 bg-white text-blue-700 rounded text-xs hover:bg-blue-50 transition-colors border text-center">
+                                MA
+                            </button>
+                            <button id="toggleBB" title="Bollinger Bands" class="px-2 py-1 bg-white text-green-700 rounded text-xs hover:bg-green-50 transition-colors border text-center">
+                                BB
+                            </button>
+                            <button id="toggleRSI" title="Relative Strength Index" class="px-2 py-1 bg-white text-yellow-700 rounded text-xs hover:bg-yellow-50 transition-colors border text-center">
+                                RSI
+                            </button>
+                            <button id="toggleMACD" title="Moving Average Convergence/Divergence" class="px-2 py-1 bg-white text-purple-700 rounded text-xs hover:bg-purple-50 transition-colors border text-center">
+                                MACD
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-gray-600">LOW:</span>
+                                <span class="font-semibold text-gray-900 text-sm">{{ annual_min|floatformat:1 }}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-gray-600">HIGH:</span>
+                                <span class="font-semibold text-gray-900 text-sm">{{ annual_max|floatformat:1 }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-gray-600">CHANGE</span>
+                                <span class="font-semibold text-sm {% if daily_change >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                                    {% if daily_change > 0 %}+{% endif %}{{ daily_change|floatformat:1 }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-gray-600">CHANGE %</span>
+                                <span class="font-semibold text-sm {% if daily_change >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                                    {% if daily_change > 0 %}▲{% elif daily_change < 0 %}▼{% endif %}{{ daily_change_percent|floatformat:2 }}%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div id="container" style="height: 500px; min-width: 310px"></div>
     </div>
 </div>
 {% endblock %}
 
+
 {% block scripts %}
+<link rel="stylesheet" type="text/css" href="https://code.highcharts.com/css/stocktools/gui.css">
+
 <script src="https://code.highcharts.com/stock/highstock.js"></script>
+<script src="https://code.highcharts.com/modules/popup.js"></script>
 <script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
-<script src="https://code.highcharts.com/stock/modules/technical-indicators.js"></script>
-<script src="https://code.highcharts.com/stock/modules/annotations.js"></script>
+<script src="https://code.highcharts.com/stock/modules/export-data.js"></script>
+<script src="https://code.highcharts.com/stock/indicators/indicators-all.js"></script>
+<script src="https://code.highcharts.com/stock/modules/stock-tools.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Debug: Check if data exists
     const rawData = {{ chart_data|safe }};
-    console.log('Raw chart data:', rawData);
     
     if (!rawData || rawData.length === 0) {
-        console.error('Chart data is empty or undefined');
-        document.getElementById('container').innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No data available</div>';
+        document.getElementById('container').innerHTML = 
+            '<div class="flex items-center justify-center h-full text-gray-500"><p>No data available</p></div>';
         return;
     }
     
-    // Initialize with basic chart first
-    try {
-        const chart = Highcharts.stockChart('container', {
+    let chart;
+    let movingAveragesVisible = false;
+    let bollingerBandsVisible = false;
+    let rsiVisible = false;
+    let macdVisible = false;
+    let drawingToolsVisible = false;
+    
+    function createChart() {
+        const currentPrice = rawData[rawData.length - 1][1];
+        
+        chart = Highcharts.stockChart('container', {
             chart: { 
-                backgroundColor: '#ffffff', 
-                zoomType: 'xy',
+                backgroundColor: '#ffffff',
+                zoomType: 'x',
+                style: { fontFamily: 'Inter, sans-serif' }
             },
-            colors: ['#10B981', '#FF9800', '#9C27B0'],
             credits: { enabled: false },
+            
             rangeSelector: {
-                selected: 6,
+                selected: 10,
                 buttons: [
                     { type: 'month', count: 1, text: '1M' },
                     { type: 'month', count: 3, text: '3M' },
@@ -74,83 +150,162 @@ document.addEventListener('DOMContentLoaded', function () {
                     { type: 'year', count: 1, text: '1Y' },
                     { type: 'year', count: 5, text: '5Y' },
                     { type: 'all', text: 'MAX' }
-                ]
+                ],
+                buttonTheme: {
+                    fill: '#f3f4f6',
+                    stroke: '#d1d5db',
+                    'stroke-width': 1,
+                    style: { color: '#374151' },
+                    states: {
+                        hover: { fill: '#e5e7eb' },
+                        select: { fill: '#10B981', style: { color: 'white' } }
+                    }
+                }
             },
+            
             title: { text: null },
-            navigator: { enabled: false },
-            xAxis: { type: "datetime", gridLineColor: "#e5e7eb" },
-            yAxis: [{
-                title: { text: 'Price (KES)' },
-                labels: { format: '{value:,.0f}' },
-                gridLineColor: "#e5e7eb",
-                opposite: false
-            }],
-            tooltip: {
-                split: true,
-                valueDecimals: 2
+            navigator: { enabled: true },
+            scrollbar: { enabled: false },
+            
+            xAxis: { 
+                type: "datetime",
+                gridLineColor: "#f1f5f9",
+                lineColor: "#e2e8f0",
+                tickColor: "#e2e8f0",
+                labels: { style: { color: '#64748b' } }
             },
+            
+            yAxis: [{
+                title: { text: null },
+                labels: { 
+                    format: '{value:,.0f}',
+                    style: { color: '#64748b' },
+                    align: 'right',
+                    x: -8
+                },
+                gridLineColor: "#f1f5f9",
+                opposite: true,
+                height: '100%',
+                plotLines: [{
+                    value: currentPrice,
+                    color: '#10B981',
+                    width: 1,
+                    zIndex: 4,
+                    label: {
+                        text: currentPrice.toFixed(1),
+                        align: 'right',
+                        x: 50,
+                        style: { color: 'white' },
+                        formatter: function() {
+                           return '<div style="background-color:#10B981; padding: 4px 8px; border-radius: 4px; font-size:12px;">' + this.options.label.text + '</div>';
+                        },
+                        useHTML: true
+                    }
+                }]
+            }, {
+                title: { text: null },
+                labels: { enabled: false },
+                top: '75%',
+                height: '25%',
+                offset: 0,
+                gridLineWidth: 0
+            }, {
+                title: { text: null },
+                labels: { enabled: false },
+                top: '75%',
+                height: '25%',
+                offset: 0,
+                gridLineWidth: 0
+            }],
+            
+            tooltip: { shared: true, valueDecimals: 1 },
+            
+            stockTools: {
+                gui: { enabled: false }
+            },
+            
             series: [{
                 name: 'Sugar Price',
                 data: rawData,
                 type: 'line',
-                id: 'primary',
-                tooltip: { valueDecimals: 2 }
-            }]
+                id: 'main-series',
+                color: '#10B981',
+                lineWidth: 2
+            }],
+            
+            exporting: { enabled: false },
+            legend: { enabled: false }
         });
-
-        console.log('Basic chart created successfully');
-
-        // Add indicators after basic chart is created
-        setTimeout(() => {
-            try {
-                chart.addSeries({
-                    type: 'sma',
-                    linkedTo: 'primary',
-                    id: 'sma',
-                    params: { period: 14 },
-                    name: 'SMA (14)',
-                    visible: false // Start hidden
-                });
-
-                chart.addSeries({
-                    type: 'ema',
-                    linkedTo: 'primary',
-                    id: 'ema',
-                    params: { period: 20 },
-                    name: 'EMA (20)',
-                    visible: false // Start hidden
-                });
-
-                console.log('Technical indicators added successfully');
-            } catch (indicatorError) {
-                console.error('Error adding indicators:', indicatorError);
-            }
-        }, 100);
-
-        // Button event listeners
-        document.getElementById('toggleIndicators').addEventListener('click', function() {
-            try {
-                const sma = chart.get('sma');
-                const ema = chart.get('ema');
-                
-                if (sma && ema) {
-                    sma.setVisible(!sma.visible, false);
-                    ema.setVisible(!ema.visible, true);
-                }
-            } catch (error) {
-                console.error('Error toggling indicators:', error);
-            }
-        });
-
-        document.getElementById('toggleDrawing').addEventListener('click', function() {
-            // Simplified drawing toggle - just show a message for now
-            console.log('Drawing tools clicked - feature to be implemented');
-        });
-
-    } catch (error) {
-        console.error('Error creating chart:', error);
-        document.getElementById('container').innerHTML = '<div class="flex items-center justify-center h-full text-red-500">Error loading chart: ' + error.message + '</div>';
+        
+        return chart;
     }
+    
+    // Functions to toggle indicators
+    function toggleSeries(seriesId, isVisible, button, activeClass, createFunc) {
+        const series = chart.get(seriesId);
+        if (series) {
+            series.remove();
+            button.classList.remove(activeClass);
+            return false;
+        } else {
+            createFunc();
+            button.classList.add(activeClass);
+            return true;
+        }
+    }
+
+    function toggleMovingAverages() {
+        if (!chart) return;
+        const button = document.getElementById('toggleMA');
+        if (movingAveragesVisible) {
+            ['sma-20', 'sma-50'].forEach(id => { if(chart.get(id)) chart.get(id).remove(); });
+            button.classList.remove('bg-blue-100');
+            movingAveragesVisible = false;
+        } else {
+            chart.addSeries({ id: 'sma-20', linkedTo: 'main-series', type: 'sma', params: { period: 20 }, name: 'SMA 20', color: '#f59e0b', dashStyle: 'Dash' });
+            chart.addSeries({ id: 'sma-50', linkedTo: 'main-series', type: 'sma', params: { period: 50 }, name: 'SMA 50', color: '#ef4444', dashStyle: 'Dot' });
+            button.classList.add('bg-blue-100');
+            movingAveragesVisible = true;
+        }
+    }
+
+    function toggleBollingerBands() {
+        bollingerBandsVisible = toggleSeries('bb', bollingerBandsVisible, document.getElementById('toggleBB'), 'bg-green-100', () => {
+            chart.addSeries({ id: 'bb', linkedTo: 'main-series', type: 'bb', name: 'Bollinger Bands' });
+        });
+    }
+
+    function toggleRSI() {
+        rsiVisible = toggleSeries('rsi', rsiVisible, document.getElementById('toggleRSI'), 'bg-yellow-100', () => {
+            chart.addSeries({ id: 'rsi', linkedTo: 'main-series', type: 'rsi', name: 'RSI', yAxis: 1, params: { period: 14 } });
+        });
+    }
+
+    function toggleMACD() {
+        macdVisible = toggleSeries('macd', macdVisible, document.getElementById('toggleMACD'), 'bg-purple-100', () => {
+            chart.addSeries({ id: 'macd', linkedTo: 'main-series', type: 'macd', name: 'MACD', yAxis: 2 });
+        });
+    }
+
+    // Event Listeners
+    document.getElementById('indicatorsBtn').addEventListener('click', () => {
+        document.getElementById('indicatorsDropdown').classList.toggle('hidden');
+    });
+    
+    document.getElementById('drawingToolsBtn').addEventListener('click', () => {
+        drawingToolsVisible = !drawingToolsVisible;
+        chart.update({ stockTools: { gui: { enabled: drawingToolsVisible } } });
+        document.getElementById('drawingToolsBtn').classList.toggle('bg-green-100', drawingToolsVisible);
+    });
+    
+    document.getElementById('toggleMA').addEventListener('click', toggleMovingAverages);
+    document.getElementById('toggleBB').addEventListener('click', toggleBollingerBands);
+    document.getElementById('toggleRSI').addEventListener('click', toggleRSI);
+    document.getElementById('toggleMACD').addEventListener('click', toggleMACD);
+    
+    document.getElementById('exportData').addEventListener('click', () => chart && chart.exportChart());
+    
+    createChart();
 });
 </script>
 {% endblock %}

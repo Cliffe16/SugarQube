@@ -35,18 +35,21 @@
                 </div>
             </div>
         </div>
-        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
+        
+        <nav class="w-full px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
                 <div class="flex items-center">
                     <i data-feather="box" class="h-8 w-8 text-green-600"></i>
                     <a href="{% url 'market_trends' %}" class="ml-2 text-xl font-bold text-gray-900">SugarQube</a>
                 </div>
-                <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+
+                <div class="hidden sm:flex sm:space-x-8">
                     <a href="{% url 'market_trends' %}" class="{% if 'dashboard' in request.path %}border-green-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Dashboard</a>
                     <a href="{% url 'blog_home' %}" class="{% if 'blog' in request.path %}border-green-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Blog</a>
                     <a href="{% url 'listing_list' %}" class="{% if 'trading' in request.path %}border-green-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Trading</a>
                 </div>
-                <div class="hidden sm:ml-6 sm:flex sm:items-center">
+
+                <div class="hidden sm:flex sm:items-center">
                      <div class="relative ml-3">
                         <div>
                             <button type="button" class="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
@@ -70,7 +73,7 @@
     </header>
 
     <main class="pt-32 flex-grow">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-screen-2xl mx-auto sm:px-6 lg:px-8">
             {% if messages %}
                 {% for message in messages %}
                     <div class="p-4 mb-4 text-sm rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-800{% elif message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}" role="alert">
