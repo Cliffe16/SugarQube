@@ -38,33 +38,37 @@
         
         <nav class="w-full px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
-                <div class="flex items-center">
+                <div class="flex-1 flex items-center">
                     <i data-feather="box" class="h-8 w-8 text-green-600"></i>
                     <a href="{% url 'market_trends' %}" class="ml-2 text-xl font-bold text-gray-900">SugarQube</a>
                 </div>
 
-                <div class="hidden sm:flex sm:space-x-8">
-                    <a href="{% url 'market_trends' %}" class="{% if 'dashboard' in request.path %}border-green-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Dashboard</a>
-                    <a href="{% url 'blog_home' %}" class="{% if 'blog' in request.path %}border-green-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Blog</a>
-                    <a href="{% url 'listing_list' %}" class="{% if 'trading' in request.path %}border-green-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Trading</a>
+                <div class="flex-1 flex justify-center">
+                    <div class="hidden sm:flex sm:space-x-8">
+                        <a href="{% url 'market_trends' %}" class="{% if 'dashboard' in request.path %}border-green-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Dashboard</a>
+                        <a href="{% url 'blog_home' %}" class="{% if 'blog' in request.path %}border-green-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Blog</a>
+                        <a href="{% url 'listing_list' %}" class="{% if 'trading' in request.path %}border-green-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Trading</a>
+                    </div>
                 </div>
 
-                <div class="hidden sm:flex sm:items-center">
-                     <div class="relative ml-3">
-                        <div>
-                            <button type="button" class="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
-                                <span class="text-gray-700">Welcome, {{ user.username }}</span>
-                                <i data-feather="chevron-down" class="ml-1 h-4 w-4 text-gray-500"></i>
-                            </button>
-                        </div>
-                        <div id="user-menu" class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
-                            <a href="{% url 'order_history' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1">My Orders</a>
-                            <form method="post" action="{% url 'logout' %}">
-                                {% csrf_token %}
-                                <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1">
-                                    Logout
+                <div class="flex-1 flex justify-end">
+                    <div class="hidden sm:flex sm:items-center">
+                         <div class="relative ml-3">
+                            <div>
+                                <button type="button" class="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
+                                    <span class="text-gray-700">Welcome, {{ user.username }}</span>
+                                    <i data-feather="chevron-down" class="ml-1 h-4 w-4 text-gray-500"></i>
                                 </button>
-                            </form>
+                            </div>
+                            <div id="user-menu" class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
+                                <a href="{% url 'order_history' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1">My Orders</a>
+                                <form method="post" action="{% url 'logout' %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1">
+                                        Logout
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
