@@ -6,6 +6,7 @@ import time
 from django.contrib.auth.decorators import login_required
 from datetime import datetime, timedelta
 import random
+from django.http import JsonResponse
 
 @login_required
 def market_trends(request):
@@ -75,3 +76,17 @@ def market_trends(request):
         'volume': volume,
     }
     return render(request, 'dashboard/market_trends.html', context)
+
+def landing_chart_data(request):
+    """
+    Provides the last year of sugar price data for the landing page chart.
+    """
+    one_year_ago = datetime.now() - timedelta(days=365)
+    prices = SugarPrice.objects.filter(date__gte=one_year_ago).order_by('date')
+    
+    chart_data = []
+    for price in prices:
+        timestamp = int(time.mktime(price.date.timetuple())) * 1000
+        chart_data.append([timestamp, float(price.amount)])
+        
+    return JsonResponse(chart_data, safe=False)

@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import TemplateView
 from users import views as user_views
+from dashboard import views as dashboard_views  
 from django.shortcuts import redirect
 
 def root_redirect(request):
@@ -17,6 +18,8 @@ urlpatterns = [
     
     # Root URL - handles authenticated vs non-authenticated users
     path('', root_redirect, name='home'),
+    
+    path('landing-chart-data/', dashboard_views.landing_chart_data, name='landing_chart_data'),
     
     # Dashboard URLs (with 'dashboard/' prefix)
     path('dashboard/', include('dashboard.urls')),
