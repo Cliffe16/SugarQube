@@ -9,7 +9,28 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        :root {
+            --green-primary: #10B981;
+            --green-dark: #047857;
+            --green-light: #D1FAE5;
+            --green-lighter: #ECFDF5;
+            --gray-dark: #1F2937;
+            --gray-medium: #4B5563;
+            --gray-light: #F3F4F6;
+        }
+        
+        body { 
+            font-family: 'Inter', sans-serif;
+            color: var(--gray-dark);
+        }
+        
+        .card {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--gray-light);
+        }
+        
         @keyframes scroll-left {
             0% { transform: translateX(100%); }
             100% { transform: translateX(-100%); }
@@ -19,18 +40,15 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 flex flex-col min-h-screen">
-
+<body class="bg-gray-50 flex flex-col min-h-screen">
     <header class="bg-white shadow-sm fixed top-0 left-0 right-0 z-50">
-        <div class="bg-white border-b border-gray-200 h-10 flex items-center">
-            <div class="bg-green-600 text-white font-bold text-sm px-4 h-full flex items-center flex-shrink-0 z-10">
-                Weekly News
-            </div>
+        <div class="bg-green-600 text-white font-bold text-sm px-4 h-6 flex items-center">
+            
             <div class="flex-grow h-full overflow-hidden relative" 
                  style="mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);">
                 <div class="animate-scroll-left absolute inset-0 flex items-center">
-                    <p class="whitespace-nowrap text-sm text-gray-700 pl-4">
-                        Kenya's Ministry of Agriculture has officially gazetted a sugar development levy to be levied at 4% of ex-mill price and 4% of Cost Insurance and Freight price for imported sugar.
+                    <p class="whitespace-nowrap text-sm text-green-50 pl-4">
+                        Weekly News: Kenya's Ministry of Agriculture has officially gazetted a sugar development levy to be levied at 4% of ex-mill price and 4% of Cost Insurance and Freight price for imported sugar.
                     </p>
                 </div>
             </div>
@@ -42,7 +60,6 @@
                     <i data-feather="box" class="h-8 w-8 text-green-600"></i>
                     <a href="{% url 'market_trends' %}" class="ml-2 text-xl font-bold text-gray-900">SugarQube</a>
                 </div>
-
                 <div class="flex-1 flex justify-center">
                     <div class="hidden sm:flex sm:space-x-8">
                         <a href="{% url 'market_trends' %}" class="{% if 'dashboard' in request.path %}border-green-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Dashboard</a>
@@ -50,7 +67,6 @@
                         <a href="{% url 'listing_list' %}" class="{% if 'trading' in request.path %}border-green-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Trading</a>
                     </div>
                 </div>
-
                 <div class="flex-1 flex justify-end">
                     <div class="hidden sm:flex sm:items-center">
                          <div class="relative ml-3">
@@ -75,7 +91,6 @@
             </div>
         </nav>
     </header>
-
     <main class="pt-32 flex-grow">
         <div class="max-w-screen-2xl mx-auto sm:px-6 lg:px-8">
             {% if messages %}
@@ -89,7 +104,6 @@
             {% block content %}{% endblock %}
         </div>
     </main>
-
     <div id="support-widget-container" class="fixed bottom-5 right-5 z-50">
         <div id="chat-window" class="hidden w-80 bg-white rounded-lg shadow-xl mb-2">
             <div class="bg-green-600 text-white p-3 rounded-t-lg">
@@ -115,34 +129,28 @@
                 userMenu.classList.toggle('hidden');
             });
         }
-
         // --- Support Widget JavaScript ---
         const supportButton = document.getElementById('support-button');
         const chatWindow = document.getElementById('chat-window');
         const chatBody = document.getElementById('chat-body');
         const chatInput = document.getElementById('chat-input');
         const chatInputArea = document.getElementById('chat-input-area');
-
         let chatState = 'start';
         let ticketData = {};
-
         supportButton.addEventListener('click', () => {
             chatWindow.classList.toggle('hidden');
             if (!chatWindow.classList.contains('hidden')) {
                 startChat();
             }
         });
-
         function addBotMessage(message) {
             chatBody.innerHTML += `<div class="mb-2"><span class="inline-block bg-gray-200 rounded-lg p-2 text-sm">${message}</span></div>`;
             chatBody.scrollTop = chatBody.scrollHeight;
         }
-
         function addUserMessage(message) {
             chatBody.innerHTML += `<div class="mb-2 text-right"><span class="inline-block bg-green-500 text-white rounded-lg p-2 text-sm">${message}</span></div>`;
             chatBody.scrollTop = chatBody.scrollHeight;
         }
-
         function startChat() {
             chatState = 'awaiting_subject';
             chatBody.innerHTML = '';
@@ -151,7 +159,6 @@
             chatInput.value = '';
             chatInput.focus();
         }
-
         chatInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && chatInput.value.trim() !== '') {
                 const userInput = chatInput.value.trim();
@@ -160,7 +167,6 @@
                 chatInput.value = '';
             }
         });
-
         function handleChatLogic(input) {
             if (chatState === 'awaiting_subject') {
                 ticketData.subject = input;
@@ -183,7 +189,6 @@
                     body: JSON.stringify(ticketData),
                 });
                 const result = await response.json();
-
                 if (response.ok) {
                     addBotMessage(`Success! Your ticket has been created. Your ticket ID is <strong>${result.ticket_id}</strong>. A confirmation has been sent to your email. You can now close this window.`);
                 } else {

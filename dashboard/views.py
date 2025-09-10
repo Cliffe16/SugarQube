@@ -79,13 +79,14 @@ def market_trends(request):
 
 def landing_chart_data(request):
     """
-    Provides the last year of sugar price data for the landing page chart.
+    Provides sugar price data from the calendar year three years prior to the current year.
     """
-    one_year_ago = datetime.now() - timedelta(days=365)
-    prices = SugarPrice.objects.filter(date__gte=one_year_ago).order_by('date')
+    target_year = datetime.now().year - 3 # Calculates 2022
+    prices = SugarPrice.objects.filter(date__year=target_year).order_by('date')
     
     chart_data = []
     for price in prices:
+        # Highcharts requires timestamps in milliseconds
         timestamp = int(time.mktime(price.date.timetuple())) * 1000
         chart_data.append([timestamp, float(price.amount)])
         

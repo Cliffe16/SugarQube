@@ -1,25 +1,24 @@
 {% extends 'base.html' %}
 {% block title %}Market Analysis | SugarQube{% endblock %}
-
 {% block content %}
 <div class="max-w-full mx-auto">
     <div class="grid grid-cols-12 gap-6">
         
         <div class="col-span-10">
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="card p-6">
                 <div class="flex justify-between items-start mb-4">
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-700 mb-1">PRICE CHART</h3>
-                        <h2 class="text-2xl font-bold text-indigo-900">Sugar Price Market Trend</h2>
+                        <h3 class="text-sm font-medium text-gray-500 mb-1">PRICE CHART</h3>
+                        <h2 class="text-2xl font-bold text-gray-900">Sugar Price Market Trend</h2>
                     </div>
                 </div>
                 
                 <div style="position: relative;">
-                    <!-- Move timezone selector here with absolute positioning -->
+                    <!-- Timezone selector with improved styling -->
                     <div class="absolute top-0 right-[270px] z-10 mt-2 ml-10">
                         <div class="flex items-center space-x-2">
                             <label for="timezone" class="text-sm font-medium text-gray-500"></label>
-                            <select id="timezone" class="block w-full pl-3 pr-1 py-1 text-xs bg-white border-gray-300 focus:outline-none focus:ring-    -500 focus:border-indigo-500 rounded-md">
+                            <select id="timezone" class="block w-full pl-3 pr-1 py-1 text-xs bg-white border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md">
                                 <option value="Africa/Nairobi" data-label="EAT (Nairobi)" selected>EAT (Nairobi)</option>
                                 <option value="UTC" data-label="UTC">UTC</option>
                                 <option value="Europe/London" data-label="GMT (London)">GMT (London)</option>
@@ -33,18 +32,16 @@
                 </div>
             </div>
         </div>
-
         <div class="col-span-2 space-y-4">
             
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
+            <div class="card p-6 text-center">
                 <div class="text-sm text-gray-500 mb-1">PRICE</div>
                 <div class="text-3xl font-bold text-gray-900 mb-2" id="latest-price"></div>
                 <div class="flex items-center justify-center">
-                    <span class="text-sm text-green-600 font-semibold" id="price-change"></span>
+                    <span class="text-sm font-semibold" id="price-change"></span>
                 </div>
             </div>
-
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div class="card p-4">
                 <div class="grid grid-cols-1 gap-4">
                     <div class="space-y-3">
                         <div class="flex justify-between items-center">
@@ -70,14 +67,11 @@
     </div>
 </div>
 {% endblock %}
-
 {% block scripts %}
 <link rel="stylesheet" type="text/css" href="https://code.highcharts.com/css/stocktools/gui.css">
 <link rel="stylesheet" type="text/css" href="https://code.highcharts.com/css/annotations/popup.css">
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.34/moment-timezone-with-data.min.js"></script>
-
 <script src="https://code.highcharts.com/stock/highstock.js"></script>
 <script src="https://code.highcharts.com/stock/indicators/indicators.js"></script>
 <script src="https://code.highcharts.com/stock/indicators/sma.js"></script>
@@ -92,13 +86,11 @@
 <script src="https://code.highcharts.com/stock/modules/full-screen.js"></script>
 <script src="https://code.highcharts.com/stock/modules/stock-tools.js"></script>
 <script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
-
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const rawData = {{ chart_data|safe }};
     const timezoneSelect = document.getElementById('timezone');
     let chart;
-
     function updateTimezoneOptions() {
         const options = timezoneSelect.options;
         for (let i = 0; i < options.length; i++) {
@@ -109,22 +101,19 @@ document.addEventListener('DOMContentLoaded', function () {
             option.text = `${label} (${timeString})`;
         }
     }
-
     function createChart(timezone) {
         if (!rawData || rawData.length === 0) {
             document.getElementById('container').innerHTML =
                 '<div class="flex items-center justify-center h-full text-gray-500"><p>No data available</p></div>';
             return;
         }
-
         const currentPrice = rawData[rawData.length - 1][1];
-
         Highcharts.setOptions({
             time: {
                 timezone: timezone
-            }
+            },
+            colors: ['#10B981', '#047857', '#D1FAE5', '#ECFDF5']
         });
-
         chart = Highcharts.stockChart('container', {
             chart: {
                 backgroundColor: '#ffffff',
@@ -217,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         'crookedLines', 'measure', 'advanced', 'toggleAnnotations', 
                         'separator', 'verticalLabels', 'flags', 'separator', 
                         'zoomChange', 'fullScreen', 'typeChange', 'separator', 
-                        , 'saveChart'
+                        'saveChart'
                     ],
                     iconsURL: 'https://code.highcharts.com/12.4.0/gfx/stock-icons/'
                 }
@@ -248,14 +237,11 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
-
     // Initial chart creation and timezone text update
     updateTimezoneOptions();
     createChart('Africa/Nairobi');
-
     // Update the timezone times every minute
     setInterval(updateTimezoneOptions, 60000);
-
     // Event listener for the timezone dropdown
     timezoneSelect.addEventListener('change', function() {
         if (chart) {
@@ -263,14 +249,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         createChart(this.value);
     });
-
     // Update sidebar with the latest price from the context
     const latestPrice = {{ latest_price|default:0 }};
     const dailyChange = {{ daily_change|default:0 }};
     const dailyChangePercent = {{ daily_change_percent|default:0 }};
     const annualMin = {{ annual_min|default:0 }};
     const annualMax = {{ annual_max|default:0 }};
-
     document.getElementById('latest-price').textContent = latestPrice.toFixed(2);
     document.getElementById('annual-low').textContent = annualMin.toFixed(2);
     document.getElementById('annual-high').textContent = annualMax.toFixed(2);
