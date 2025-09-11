@@ -2,46 +2,62 @@
 {% block title %}{{ listing.sugar_type }} | SugarQube{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8">
-        <h2>{{ listing.sugar_type }}</h2>
-        <h4 class="text-muted">From {{ listing.origin }}</h4>
-        <hr>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        <h4>Specifications</h4>
-        <p>{{ listing.specifications|linebreaks }}</p>
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-lg shadow-lg p-6 sm:p-8">
+                <h1 class="text-3xl sm:text-4xl font-bold text-indigo-900">{{ listing.sugar_type }}</h1>
+                <p class="mt-2 text-lg text-gray-500">From {{ listing.origin }}</p>
 
-        <h4>Trading Details</h4>
-        <ul>
-            <li><strong>Price:</strong> ${{ listing.price_per_bag }} / 50kg bag</li>
-            <li><strong>Available Stock:</strong> {{ listing.quantity_available }} bags</li>
-            <li><strong>Minimum Order:</strong> {{ listing.minimum_order_quantity }} bags</li>
-        </ul>
-    </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Place an Order</h5>
-                {% if user.is_authenticated and user.is_verified_buyer %}
-                <form method="POST" action="{% url 'place_order' listing.pk %}">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        {{ form.quantity.label_tag }}
-                        {{ form.quantity }}
-                        {% if form.quantity.errors %}
-                            <div class="text-danger small">{{ form.quantity.errors.0 }}</div>
-                        {% endif %}
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Trading Details</h3>
+                    <ul class="space-y-4 text-gray-700">
+                        <li class="flex items-center text-3xl font-bold text-green-600">
+                           KES {{ listing.price_per_bag }}
+                           <span class="text-base font-normal text-gray-500 ml-2">/ 50kg bag</span>
+                        </li>
+                        <li class="flex items-center"><i data-feather="box" class="h-5 w-5 mr-3 text-gray-400"></i><strong>Available Stock:</strong><span class="ml-2">{{ listing.quantity_available }} bags</span></li>
+                        <li class="flex items-center"><i data-feather="shopping-cart" class="h-5 w-5 mr-3 text-gray-400"></i><strong>Minimum Order:</strong><span class="ml-2">{{ listing.minimum_order_quantity }} bags</span></li>
+                    </ul>
+                </div>
+
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Specifications</h3>
+                    <div class="prose max-w-none text-gray-600">
+                        {{ listing.specifications|linebreaks }}
                     </div>
-                    <button type="submit" class="btn btn-success w-100">Submit Order</button>
-                </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-lg shadow-lg p-6 sticky top-24">
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Place an Order</h3>
+                
+                {% if user.is_authenticated and user.is_verified_buyer %}
+                    <form method="POST" action="{% url 'place_order' listing.pk %}" class="space-y-4">
+                        {% csrf_token %}
+                        <div>
+                            <label for="{{ form.quantity.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.quantity.label }}</label>
+                            {{ form.quantity }}
+                            {% if form.quantity.errors %}
+                                <div class="text-red-600 text-sm mt-1">{{ form.quantity.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <button type="submit" class="w-full bg-green-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center">
+                            <i data-feather="send" class="h-5 w-5 mr-2"></i>
+                            Submit Order
+                        </button>
+                    </form>
                 {% elif user.is_authenticated %}
-                <div class="alert alert-warning">
-                    Your account must be verified by an administrator before you can place orders.
-                </div>
+                    <div class="p-4 bg-yellow-50 text-yellow-800 rounded-lg text-sm">
+                        Your account must be verified by an administrator before you can place orders.
+                    </div>
                 {% else %}
-                <div class="alert alert-info">
-                    <a href="{% url 'login' %}?next={{ request.path }}">Login</a> to place an order.
-                </div>
+                    <div class="p-4 bg-blue-50 text-blue-800 rounded-lg text-sm text-center">
+                        <a href="{% url 'login' %}?next={{ request.path }}" class="font-semibold hover:underline">Log in or create an account</a> to place an order.
+                    </div>
                 {% endif %}
             </div>
         </div>

@@ -56,5 +56,30 @@ def place_order(request, pk):
 
 @login_required
 def order_history(request):
-    orders = Order.objects.filter(buyer=request.user).order_by('-created_at')
-    return render(request, 'trading/order_history.html', {'orders': orders})
+    # Get sorting parameters from the URL (e.g., ?sort=status&dir=asc)
+    sort_by = request.GET.get('sort', 'created_at')
+    sort_dir = request.GET.get('dir', 'desc')
+
+    # Whitelist of fields users are allowed to sort by for security
+    valid_sort_fields = ['id', 'created_at', 'listing__sugar_type', 'quantity', 'total_price', 'status']
+    if sort_by not in valid_sort_fields:
+        sort_by = 'created_at' # Default to sorting by date if invalid field is provided
+
+    # Determine the sorting direction and build the ordering string
+    if sort_dir == 'desc':
+        ordering = f'-{sort_by}'
+        next_sort_dir = 'asc'
+    else:
+        ordering = sort_by
+        next_sort_dir = 'desc'
+
+    # Query the database with the dynamic ordering
+    orders = Order.objects.filter(buyer=request.user).order_by(ordering)
+
+    context = {
+        'orders': orders,
+        'sort_by': sort_by,
+        'sort_dir': sort_dir,
+        'next_sort_dir': next_sort_dir
+    }
+    return render(request, 'trading/order_history.html', context)

@@ -9,7 +9,7 @@
                 <div class="flex justify-between items-start mb-4">
                     <div>
                         <h3 class="text-sm font-medium text-gray-500 mb-1">PRICE CHART</h3>
-                        <h2 class="text-2xl font-bold text-gray-900">Sugar Price Market Trend</h2>
+                        <h2 class="text-2xl font-bold text-indigo-900">Sugar Price Market Trend</h2>
                     </div>
                 </div>
                 
@@ -136,14 +136,32 @@ document.addEventListener('DOMContentLoaded', function () {
                     { type: 'all', text: 'MAX' }
                 ],
                 buttonTheme: {
-                    fill: '#f3f4f6',
-                    stroke: '#d1d5db',
-                    'stroke-width': 1,
-                    style: { color: '#374151' },
+                    fill: 'none',
+                    stroke: 'none',
+                    'stroke-width': 0,
+                    style: {
+                        color: '#6B7280', 
+                        fontWeight: '500'
+                    },
                     states: {
-                        hover: { fill: '#e5e7eb' },
-                        select: { fill: '#10B981', style: { color: 'white' } }
+                        hover: {
+                            fill: '#F9FAFB', 
+                            style: {
+                                color: '#1F2937'
+                            }
+                        },
+                        select: {
+                            fill: 'none',
+                            style: {
+                                color: '#6161ff',
+                                fontWeight: '700',
+                            }
+                        }
                     }
+                },
+                inputStyle: {
+                    backgroundColor: '#F9FAFB',
+                    borderColor: '#D1D5DB',
                 }
             },
             title: {
