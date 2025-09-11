@@ -10,7 +10,7 @@
         <div class="p-6 flex-grow">
             <h2 class="text-xl font-bold text-indigo-900">{{ listing.sugar_type }}</h2>
             <p class="text-sm text-gray-500 mb-4">Origin: {{ listing.origin }}</p>
-            <p class="text-3xl font-bold text-green-600">KES {{ listing.price_per_bag }} <span class="text-base font-normal text-gray-500">/ 50kg bag</span></p>
+            <div class="text-3xl font-bold text-green-600" data-kes-price="{{ listing.price_per_bag }}">KES {{ listing.price_per_bag }} <span class="text-base font-normal text-gray-500">/ 50kg bag</span></div>
             <ul class="mt-4 space-y-2 text-gray-700">
                 <li class="flex items-center"><i data-feather="box" class="h-5 w-5 mr-2 text-gray-400"></i><strong>Available:</strong><span class="ml-2">{{ listing.quantity_available }} bags</span></li>
                 <li class="flex items-center"><i data-feather="shopping-cart" class="h-5 w-5 mr-2 text-gray-400"></i><strong>Min. Order:</strong><span class="ml-2">{{ listing.minimum_order_quantity }} bags</span></li>

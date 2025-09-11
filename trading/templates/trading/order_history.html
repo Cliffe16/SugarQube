@@ -55,7 +55,7 @@
                         <td class="px-6 py-4">{{ order.created_at|date:"d M Y" }}</td>
                         <td class="px-6 py-4">{{ order.listing.sugar_type }}</td>
                         <td class="px-6 py-4">{{ order.quantity }} bags</td>
-                        <td class="px-6 py-4">KES {{ order.total_price }}</td>
+                        <td class="px-6 py-4" data-kes-price="{{ order.total_price }}">KES {{ order.total_price }}</td>
                         <td class="px-6 py-4">
                             <span class="px-2 py-1 text-xs font-semibold rounded-full
                                 {% if order.status == 'Pending' %}bg-yellow-100 text-yellow-800

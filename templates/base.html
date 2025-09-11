@@ -18,19 +18,19 @@
             --gray-medium: #4B5563;
             --gray-light: #F3F4F6;
         }
-        
+
         body { 
             font-family: 'Inter', sans-serif;
             color: var(--gray-dark);
         }
-        
+
         .card {
             background: white;
             border-radius: 0.5rem;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             border: 1px solid var(--gray-light);
         }
-        
+
         @keyframes scroll-left {
             0% { transform: translateX(100%); }
             100% { transform: translateX(-100%); }
@@ -43,7 +43,7 @@
 <body class="bg-gray-50 flex flex-col min-h-screen">
     <header class="bg-white shadow-sm fixed top-0 left-0 right-0 z-50">
         <div class="bg-green-600 text-white font-bold text-sm px-4 h-6 flex items-center">
-            
+
             <div class="flex-grow h-full overflow-hidden relative" 
                  style="mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);">
                 <div class="animate-scroll-left absolute inset-0 flex items-center">
@@ -53,7 +53,7 @@
                 </div>
             </div>
         </div>
-        
+
         <nav class="w-full px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex-1 flex items-center">
@@ -67,8 +67,14 @@
                         <a href="{% url 'listing_list' %}" class="{% if 'trading' in request.path %}border-green-500 text-gray-900{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Trading</a>
                     </div>
                 </div>
-                <div class="flex-1 flex justify-end">
+                <div class="flex-1 flex justify-end items-center">
                     <div class="hidden sm:flex sm:items-center">
+                         <div class="mr-4">
+                            <select id="currency-selector" class="bg-white border border-gray-300 rounded-md py-1 pl-2 pr-8 text-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                                <option value="KES">🇰🇪 KES</option>
+                                <option value="USD">🇺🇸 USD</option>
+                            </select>
+                        </div>
                          <div class="relative ml-3">
                             <div>
                                 <button type="button" class="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
@@ -100,7 +106,7 @@
                     </div>
                 {% endfor %}
             {% endif %}
-            
+
             {% block content %}{% endblock %}
         </div>
     </main>
@@ -119,85 +125,140 @@
             <i data-feather="message-square" class="w-7 h-7"></i>
         </button>
     </div>
-    
+
     <script>
-        feather.replace();
-        const userMenuButton = document.getElementById('user-menu-button');
-        const userMenu = document.getElementById('user-menu');
-        if (userMenuButton) {
-            userMenuButton.addEventListener('click', () => {
-                userMenu.classList.toggle('hidden');
-            });
-        }
-        // --- Support Widget JavaScript ---
-        const supportButton = document.getElementById('support-button');
-        const chatWindow = document.getElementById('chat-window');
-        const chatBody = document.getElementById('chat-body');
-        const chatInput = document.getElementById('chat-input');
-        const chatInputArea = document.getElementById('chat-input-area');
-        let chatState = 'start';
-        let ticketData = {};
-        supportButton.addEventListener('click', () => {
-            chatWindow.classList.toggle('hidden');
-            if (!chatWindow.classList.contains('hidden')) {
-                startChat();
-            }
-        });
-        function addBotMessage(message) {
-            chatBody.innerHTML += `<div class="mb-2"><span class="inline-block bg-gray-200 rounded-lg p-2 text-sm">${message}</span></div>`;
-            chatBody.scrollTop = chatBody.scrollHeight;
-        }
-        function addUserMessage(message) {
-            chatBody.innerHTML += `<div class="mb-2 text-right"><span class="inline-block bg-green-500 text-white rounded-lg p-2 text-sm">${message}</span></div>`;
-            chatBody.scrollTop = chatBody.scrollHeight;
-        }
-        function startChat() {
-            chatState = 'awaiting_subject';
-            chatBody.innerHTML = '';
-            ticketData = {};
-            addBotMessage("Hello! I'm the support assistant. What is the subject of your issue?");
-            chatInput.value = '';
-            chatInput.focus();
-        }
-        chatInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && chatInput.value.trim() !== '') {
-                const userInput = chatInput.value.trim();
-                addUserMessage(userInput);
-                handleChatLogic(userInput);
-                chatInput.value = '';
-            }
-        });
-        function handleChatLogic(input) {
-            if (chatState === 'awaiting_subject') {
-                ticketData.subject = input;
-                chatState = 'awaiting_message';
-                addBotMessage("Got it. Please describe your issue in detail.");
-            } else if (chatState === 'awaiting_message') {
-                ticketData.message = input;
-                chatState = 'submitting';
-                addBotMessage("Thank you. I'm creating a support ticket for you now. Please wait a moment...");
-                chatInputArea.style.display = 'none';
-                submitTicket();
-            }
-        }
-        
-        async function submitTicket() {
-            try {
-                const response = await fetch('/support/submit/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(ticketData),
+        document.addEventListener('DOMContentLoaded', function() {
+            feather.replace();
+
+            const userMenuButton = document.getElementById('user-menu-button');
+            const userMenu = document.getElementById('user-menu');
+            if (userMenuButton) {
+                userMenuButton.addEventListener('click', () => {
+                    userMenu.classList.toggle('hidden');
                 });
-                const result = await response.json();
-                if (response.ok) {
-                    addBotMessage(`Success! Your ticket has been created. Your ticket ID is <strong>${result.ticket_id}</strong>. A confirmation has been sent to your email. You can now close this window.`);
-                } else {
-                    addBotMessage(`Sorry, there was an error: ${result.error}. Please try again later.`);
-                }
-            } catch (error) {
-                addBotMessage("A network error occurred. Please check your connection and try again.");
+
+                // Close dropdown if clicked outside
+                document.addEventListener('click', function(event) {
+                    if (!userMenuButton.contains(event.target) && !userMenu.contains(event.target)) {
+                        userMenu.classList.add('hidden');
+                    }
+                });
             }
-        }
+
+            // --- Support Widget JavaScript ---
+            const supportButton = document.getElementById('support-button');
+            const chatWindow = document.getElementById('chat-window');
+            const chatBody = document.getElementById('chat-body');
+            const chatInput = document.getElementById('chat-input');
+            const chatInputArea = document.getElementById('chat-input-area');
+            let chatState = 'start';
+            let ticketData = {};
+            supportButton.addEventListener('click', () => {
+                chatWindow.classList.toggle('hidden');
+                if (!chatWindow.classList.contains('hidden')) {
+                    startChat();
+                }
+            });
+            function addBotMessage(message) {
+                chatBody.innerHTML += `<div class="mb-2"><span class="inline-block bg-gray-200 rounded-lg p-2 text-sm">${message}</span></div>`;
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }
+            function addUserMessage(message) {
+                chatBody.innerHTML += `<div class="mb-2 text-right"><span class="inline-block bg-green-500 text-white rounded-lg p-2 text-sm">${message}</span></div>`;
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }
+            function startChat() {
+                chatState = 'awaiting_subject';
+                chatBody.innerHTML = '';
+                ticketData = {};
+                addBotMessage("Hello! I'm the support assistant. What is the subject of your issue?");
+                chatInput.value = '';
+                chatInput.focus();
+            }
+            chatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && chatInput.value.trim() !== '') {
+                    const userInput = chatInput.value.trim();
+                    addUserMessage(userInput);
+                    handleChatLogic(userInput);
+                    chatInput.value = '';
+                }
+            });
+            function handleChatLogic(input) {
+                if (chatState === 'awaiting_subject') {
+                    ticketData.subject = input;
+                    chatState = 'awaiting_message';
+                    addBotMessage("Got it. Please describe your issue in detail.");
+                } else if (chatState === 'awaiting_message') {
+                    ticketData.message = input;
+                    chatState = 'submitting';
+                    addBotMessage("Thank you. I'm creating a support ticket for you now. Please wait a moment...");
+                    chatInputArea.style.display = 'none';
+                    submitTicket();
+                }
+            }
+
+            async function submitTicket() {
+                try {
+                    const response = await fetch('/support/submit/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(ticketData),
+                    });
+                    const result = await response.json();
+                    if (response.ok) {
+                        addBotMessage(`Success! Your ticket has been created. Your ticket ID is <strong>${result.ticket_id}</strong>. A confirmation has been sent to your email. You can now close this window.`);
+                    } else {
+                        addBotMessage(`Sorry, there was an error: ${result.error}. Please try again later.`);
+                    }
+                } catch (error) {
+                    addBotMessage("A network error occurred. Please check your connection and try again.");
+                }
+            }
+
+            // --- Currency Conversion ---
+            const exchangeRate = {{ EXCHANGE_RATE_USD|default:1.0 }};
+            const currencySelector = document.getElementById('currency-selector');
+
+            function formatPrices() {
+                const selectedCurrency = currencySelector.value;
+                localStorage.setItem('selectedCurrency', selectedCurrency); // Save preference
+
+                document.querySelectorAll('[data-kes-price]').forEach(el => {
+                    const kesPrice = parseFloat(el.dataset.kesPrice);
+                    if (isNaN(kesPrice)) return;
+
+                    let newPrice;
+                    let currencySymbol;
+
+                    if (selectedCurrency === 'USD') {
+                        newPrice = (kesPrice / exchangeRate).toFixed(2);
+                        currencySymbol = 'USD';
+                    } else {
+                        newPrice = kesPrice.toFixed(2);
+                        currencySymbol = 'KES';
+                    }
+
+                    const priceSpan = el.querySelector('.price-figure');
+                    const currencySpan = el.querySelector('.currency-symbol');
+
+                    if (priceSpan) {
+                        priceSpan.textContent = newPrice;
+                    }
+                    if (currencySpan) {
+                        currencySpan.textContent = currencySymbol;
+                    } else {
+                         el.innerHTML = el.innerHTML.replace(/(KES|USD)\s*([\d,]+\.\d+)/, `${currencySymbol} ${newPrice}`);
+                    }
+                });
+            }
+
+            currencySelector.addEventListener('change', formatPrices);
+
+            const savedCurrency = localStorage.getItem('selectedCurrency') || 'KES';
+            currencySelector.value = savedCurrency;
+
+            formatPrices();
+        });
     </script>
     {% block scripts %}{% endblock %}
 </body>
