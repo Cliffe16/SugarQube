@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}SugarQube{% endblock %}</title>
+    <link rel="icon" href="{% static 'images/favicon.svg' %}" type="image/svg+xml">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
@@ -70,7 +71,7 @@
                 <div class="flex-1 flex justify-end items-center">
                     <div class="hidden sm:flex sm:items-center">
                          <div class="mr-4">
-                            <select id="currency-selector" class="bg-white border border-gray-300 rounded-md py-1 pl-2 pr-8 text-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                            <select id="currency-selector" class="bg-white rounded-md py-1 pl-2 pr-2 text-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
                                 <option value="KES">🇰🇪 KES</option>
                                 <option value="USD">🇺🇸 USD</option>
                             </select>
