@@ -13,6 +13,9 @@ class SugarListing(models.Model):
     specifications = models.TextField()
 
     def __str__(self):
+        """
+        String concatenation of models for easy identification
+        """
         return f'{self.sugar_type} from {self.origin}'
 
 class Order(models.Model):
@@ -36,4 +39,7 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
+        """
+        String concatenation of models for easy identification
+        """
         return f'Order #{self.id} by {self.buyer.username}'
