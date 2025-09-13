@@ -2,6 +2,9 @@ from django.db import models
 from django.conf import settings
 
 class SugarListing(models.Model):
+    """
+    This model represents sugar products in the marketplace
+    """
     sugar_type = models.CharField(max_length=255)
     origin = models.CharField(max_length=255)
     quantity_available = models.PositiveIntegerField(help_text="In 50kg bags")
@@ -13,6 +16,10 @@ class SugarListing(models.Model):
         return f'{self.sugar_type} from {self.origin}'
 
 class Order(models.Model):
+    """
+    This model represents a transaction record for a sugar product purchase
+    """
+    # Define status choices
     STATUS_CHOICES = [
         ('Pending', 'Pending'),
         ('Confirmed', 'Confirmed'),
@@ -20,9 +27,9 @@ class Order(models.Model):
         ('Delivered', 'Delivered'),
     ]
 
-    buyer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    # Added related_name for easier reverse lookup
-    listing = models.ForeignKey(SugarListing, related_name='orders', on_delete=models.CASCADE)
+    buyer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE) #Buyer is a user
+    # Add related_name for easier reverse lookup
+    listing = models.ForeignKey(SugarListing, related_name='orders', on_delete=models.CASCADE) #product is ordered
     quantity = models.PositiveIntegerField()
     total_price = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Pending')
