@@ -6,6 +6,9 @@ from .models import SugarListing, Order
 from .forms import OrderForm
 
 def listing_list(request):
+    """
+    This view returns a list of all available sugar products
+    """
     listings = SugarListing.objects.filter(quantity_available__gt=0).order_by('sugar_type')
     return render(request, 'trading/listing_list.html', {'listings': listings})
 

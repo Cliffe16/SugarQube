@@ -149,7 +149,8 @@
                     backgroundColor: '#ffffff',
                     style: {
                         fontFamily: 'Inter, sans-serif'
-                    }
+                    },
+                    spacingRight: 30
                 },
                 credits: {
                     enabled: false
@@ -183,7 +184,7 @@
                             select: {
                                 fill: 'none',
                                 style: {
-                                    color: '#6161ff',
+                                    color: '#1E40AF',
                                     fontWeight: '700',
                                 }
                             }
@@ -214,17 +215,17 @@
                     },
                     plotLines: [{
                         value: currentPrice,
-                        color: '#10B981',
+                        color: '#1E40AF',
                         width: 1,
                         zIndex: 4,
                         dashStyle: 'dot',
                         label: {
                             text: currentPrice.toFixed(2),
                             align: 'right',
-                            x: 60,
+                            x: 65,
                             style: { color: 'white' },
                             formatter: function() {
-                            return '<div style="background-color:#10B981; padding: 4px 8px; border-radius: 4px; font-size:12px;">' + this.options.label.text + '</div>';
+                            return '<div style="background-color:#1E40AF; padding: 4px 8px; border-radius: 4px; font-size:12px;">' + this.options.label.text + '</div>';
                             },
                             useHTML: true
                         }
@@ -269,7 +270,7 @@
                     id: 'main-series',
                     name: `Sugar Price (${selectedCurrency})`,
                     data: chartData,
-                    color: '#10B981',
+                    color: '#1E40AF',
                 }],
                 responsive: {
                     rules: [{
