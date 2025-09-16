@@ -1,14 +1,31 @@
 {% extends 'base.html' %}
-{% block title %}Verification | SugarQube{% endblock %}
+{% block title %}Buyer Verification | SugarQube{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-lg">
-    <h1 class="text-2xl font-bold text-gray-800 mb-6">Buyer Verification</h1>
-    <p class="text-gray-600 mb-6">Please upload the following documents to verified as a buyer.</p>
-    <form method="post" enctype="multipart/form-data">
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+    <div class="text-center">
+        <h1 class="text-3xl font-bold text-gray-900">Buyer Verification</h1>
+        <p class="text-gray-600 mt-2 mb-8">Please upload the following documents to get verified.</p>
+    </div>
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="w-full bg-green-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-green-700 transition-colors">Upload Documents</button>
+        
+        {% for field in form %}
+            <div class="space-y-1">
+                <label for="{{ field.id_for_label }}" class="block text-sm font-semibold text-gray-800">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        <div class="pt-4">
+             <button type="submit" class="w-full bg-green-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center">
+                <i data-feather="upload-cloud" class="h-5 w-5 mr-2"></i>
+                Upload Documents
+            </button>
+        </div>
     </form>
 </div>
 {% endblock %}

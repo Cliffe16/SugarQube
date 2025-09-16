@@ -2,12 +2,19 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser, KYC, Seller
 
+class KYCInline(admin.StackedInline):
+    model = KYC
+    can_delete = False
+    verbose_name_plural = 'KYC Documents'
+    extra = 0
+
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
+    inlines = (KYCInline,)
     list_display = ['username', 'email', 'first_name', 'last_name', 'is_verified_buyer', 'is_seller', 'is_staff']
     list_filter = ['is_verified_buyer', 'is_seller', 'is_staff', 'is_superuser', 'is_active', 'date_joined']
     fieldsets = UserAdmin.fieldsets + (
-        ('Additional Info', {'fields': ('is_verified_buyer', 'is_seller', 'company_details')}),
+        ('Additional Info', {'fields': ('is_verified_buyer', 'is_seller', 'company_name')}),
     )
 
     def save_model(self, request, obj, form, change):

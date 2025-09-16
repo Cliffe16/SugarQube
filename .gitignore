@@ -20,3 +20,6 @@ staticfiles/
 # IDE settings
 .idea/
 .vscode/
+
+#Uploaded media files
+kyc_documents/

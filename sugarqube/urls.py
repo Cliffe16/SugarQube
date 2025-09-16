@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import TemplateView
+from django.conf import settings
+from django.conf.urls.static import static
 from users import views as user_views
 from dashboard import views as dashboard_views  
 from django.shortcuts import redirect
@@ -28,6 +30,10 @@ urlpatterns = [
     
     # Authentication URLs
     path('register/', user_views.register, name='register'),
-    path('kyc_upload/', user_views.kyc_upload, name='kyc_upload'),
+    path('verification/', user_views.kyc_upload, name='verification'),
     path('accounts/', include('django.contrib.auth.urls')),
 ]
+
+# CKEditor URLs
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

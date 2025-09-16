@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
             name='KYC',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('kra_pin', models.FileField(upload_to='kyc_documents/')),
+                ('tax_pin', models.FileField(upload_to='kyc_documents/')),
                 ('certificate_of_incorporation', models.FileField(upload_to='kyc_documents/')),
                 ('tax_compliance_certificate', models.FileField(upload_to='kyc_documents/')),
                 ('cr12_form', models.FileField(upload_to='kyc_documents/')),
