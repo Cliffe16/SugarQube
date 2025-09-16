@@ -1,10 +1,12 @@
 from django.db import models
 from django.conf import settings
+from users.models import Seller
 
 class SugarListing(models.Model):
     """
     This model represents sugar products in the marketplace
     """
+    seller = models.ForeignKey(Seller, on_delete=models.CASCADE, null=True, blank=True)
     sugar_type = models.CharField(max_length=255)
     origin = models.CharField(max_length=255)
     quantity_available = models.PositiveIntegerField(help_text="In 50kg bags")
@@ -26,7 +28,6 @@ class Order(models.Model):
     STATUS_CHOICES = [
         ('Pending', 'Pending'),
         ('Confirmed', 'Confirmed'),
-        ('Shipped', 'Shipped'),
         ('Delivered', 'Delivered'),
     ]
 

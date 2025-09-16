@@ -14,22 +14,32 @@ def listing_list(request):
 
 @login_required
 def listing_detail(request, pk):
-    listing = get_object_or_404(SugarListing, pk=pk)
+    """
+    This view returns the details of a specific sugar product and provides an order form
+    """
+    listing = get_object_or_404(SugarListing, pk=pk) #get page or 404 error
     form = OrderForm()
     return render(request, 'trading/listing_detail.html', {'listing': listing, 'form': form})
 
 @login_required
 @transaction.atomic
 def place_order(request, pk):
+    """
+    This view processes the order submission for a specific sugar product
+    """
     if not request.user.is_verified_buyer:
         messages.error(request, 'You must be a verified buyer to place an order.')
         return redirect('listing_list')
 
     listing = get_object_or_404(SugarListing, pk=pk)
 
-    if request.method == 'POST':
+    # Only render the order URL if the user submitted the form(i.e request is POST)
+    if request.method == 'POST':    
         form = OrderForm(request.POST)
         if form.is_valid():
+            """
+            Checks based on trading/forms.py
+            """
             quantity = form.cleaned_data['quantity']
 
             if quantity < listing.minimum_order_quantity:

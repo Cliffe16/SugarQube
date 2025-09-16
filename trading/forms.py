@@ -1,6 +1,9 @@
 from django import forms
 
 class OrderForm(forms.Form):
+    """
+    This class defines a blank order form for placing an order
+    """
     quantity = forms.IntegerField(
         min_value=1,
         label="Quantity (50kg bags)",

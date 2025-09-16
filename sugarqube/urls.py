@@ -28,5 +28,6 @@ urlpatterns = [
     
     # Authentication URLs
     path('register/', user_views.register, name='register'),
+    path('kyc_upload/', user_views.kyc_upload, name='kyc_upload'),
     path('accounts/', include('django.contrib.auth.urls')),
 ]

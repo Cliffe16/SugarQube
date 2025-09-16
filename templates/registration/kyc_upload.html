@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Verification | SugarQube{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-lg">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Buyer Verification</h1>
+    <p class="text-gray-600 mb-6">Please upload the following documents to verified as a buyer.</p>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="w-full bg-green-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-green-700 transition-colors">Upload Documents</button>
+    </form>
+</div>
+{% endblock %}
