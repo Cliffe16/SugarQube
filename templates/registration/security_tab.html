@@ -1,0 +1,87 @@
+{% load user_filters %}
+
+<div class="space-y-8">
+    <div class="bg-white p-6 rounded-lg shadow-sm">
+        <h3 class="text-lg font-semibold text-gray-900">Authorization</h3>
+        <p class="text-sm text-gray-500 mt-1 mb-4">Information for logging in to SugarQube. Change your password whenever you think it might have been compromised.</p>
+        
+        <div id="password-view" class="divide-y divide-gray-200">
+            <div class="py-4 flex justify-between items-center">
+                <span class="text-sm font-medium text-gray-600">Login</span>
+                <span class="text-sm text-gray-800">{{ user.email|partially_hide }}</span>
+            </div>
+            <div class="py-4 flex justify-between items-center">
+                <span class="text-sm font-medium text-gray-600">Password</span>
+                <button onclick="togglePasswordEdit(true)" class="text-sm text-green-600 font-semibold hover:underline">Change</button>
+            </div>
+        </div>
+
+        <div id="password-edit" class="hidden">
+            <h4 class="font-semibold text-gray-800 mb-4">Change Password</h4>
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="password_form">
+                {{ password_form.as_p }}
+                <div class="flex space-x-4">
+                    <button type="submit" class="flex-1 bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700">Confirm</button>
+                    <button type="button" onclick="togglePasswordEdit(false)" class="flex-1 border border-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-50">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-lg shadow-sm">
+        <h3 class="text-lg font-semibold text-gray-900">2-Step Verification</h3>
+        <p class="text-sm text-gray-500 mt-1 mb-4">2-step verification ensures that all sensitive transactions are authorized by you.</p>
+        
+        <div id="2fa-view" class="divide-y divide-gray-200">
+            <div class="py-4 flex justify-between items-center">
+                <div>
+                    <span class="text-sm font-medium text-gray-600">Security type</span>
+                    <p class="text-sm text-gray-800">{{ user.phone_number|partially_hide }}</p>
+                </div>
+                <button onclick="toggle2FAEdit(true)" class="text-sm text-green-600 font-semibold hover:underline">Change</button>
+            </div>
+        </div>
+
+        <div id="2fa-edit" class="hidden">
+            <h4 class="font-semibold text-gray-800 mb-4">Change 2-Step Verification</h4>
+            <div class="space-y-4">
+                <div class="p-3 border rounded-md">
+                    <label class="flex items-center"><input type="radio" name="2fa_method" class="form-radio text-green-600" checked> <span class="ml-2">Email <br><small class="text-gray-500">{{ user.email|partially_hide }}</small></span></label>
+                </div>
+                <div class="p-3 border rounded-md">
+                    <label class="flex items-center"><input type="radio" name="2fa_method" class="form-radio text-green-600"> <span class="ml-2">Phone <br><small class="text-gray-500">{{ user.phone_number|partially_hide }}</small></span></label>
+                    <form method="post" class="mt-2 pl-6">
+                        {% csrf_token %}
+                        <input type="hidden" name="form_type" value="phone_form">
+                        {{ phone_form.phone_number.label_tag }}
+                        {{ phone_form.phone_number }}
+                    </form>
+                </div>
+                 <div class="p-3 border rounded-md opacity-50">
+                    <label class="flex items-center"><input type="radio" name="2fa_method" class="form-radio text-green-600" disabled> <span class="ml-2">Authentication app</span></label>
+                </div>
+                 <div class="p-3 border rounded-md opacity-50">
+                    <label class="flex items-center"><input type="radio" name="2fa_method" class="form-radio text-green-600" disabled> <span class="ml-2">Push notifications</span><span class="ml-2 bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">Recommended</span></label>
+                </div>
+            </div>
+            <div class="flex space-x-4 mt-6">
+                <button type="button" onclick="document.querySelector('#2fa-edit form').submit();" class="flex-1 bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700">Next</button>
+                <button type="button" onclick="toggle2FAEdit(false)" class="flex-1 border border-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-50">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    </div>
+
+<script>
+    function togglePasswordEdit(showEdit) {
+        document.getElementById('password-view').classList.toggle('hidden', showEdit);
+        document.getElementById('password-edit').classList.toggle('hidden', !showEdit);
+    }
+    function toggle2FAEdit(showEdit) {
+        document.getElementById('2fa-view').classList.toggle('hidden', showEdit);
+        document.getElementById('2fa-edit').classList.toggle('hidden', !showEdit);
+    }
+</script>

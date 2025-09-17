@@ -1,4 +1,4 @@
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm
 from .models import CustomUser, KYC
 from django import forms
 from django.core.exceptions import ValidationError
@@ -9,6 +9,23 @@ class CustomUserCreationForm(UserCreationForm):
         model = CustomUser
         fields = UserCreationForm.Meta.fields + ('first_name', 'last_name', 'email', 'phone_number', 'company_name')
 
+class CustomPasswordChangeForm(PasswordChangeForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for fieldname in ['old_password', 'new_password1', 'new_password2']:
+            self.fields[fieldname].widget.attrs = {'class': 'appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm'}
+            self.fields[fieldname].help_text = ''
+
+
+class ChangePhoneNumberForm(forms.ModelForm):
+    class Meta:
+        model = CustomUser
+        fields = ['phone_number']
+        widgets = {
+            'phone_number': forms.TextInput(attrs={'class': 'appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm'})
+        }
+
+        
 class KYCForm(forms.ModelForm):
     class Meta:
         model = KYC

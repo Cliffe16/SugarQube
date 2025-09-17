@@ -1,0 +1,29 @@
+<div class="bg-white p-8 rounded-xl shadow-lg">
+    {% if user.is_verified_buyer %}
+        <h2 class="text-2xl font-semibold text-gray-800 border-b pb-2 mb-6">Account Type</h2>
+        <div class="flex items-center space-x-4">
+            <div class="bg-green-100 p-3 rounded-full">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <div>
+                <p class="font-semibold">Your current account type is: <strong>Buyer</strong></p>
+                {% if user.is_seller %}
+                    <p class="text-sm text-gray-500">You also have a <strong>Seller</strong> account.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if not user.is_seller %}
+            <form action="{% url 'request_seller_account' %}" method="post" class="mt-6">
+                {% csrf_token %}
+                <button type="submit" class="w-full bg-green-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-green-700 transition-colors">
+                    Request to Become a Seller
+                </button>
+            </form>
+        {% endif %}
+    {% else %}
+        <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4" role="alert">
+            <p class="font-bold">This feature is available to verified buyers only.</p>
+        </div>
+    {% endif %}
+</div>
