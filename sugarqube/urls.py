@@ -23,15 +23,19 @@ urlpatterns = [
     
     path('landing-chart-data/', dashboard_views.landing_chart_data, name='landing_chart_data'),
     
-    # Dashboard URLs (with 'dashboard/' prefix)
+    # App URLs
     path('dashboard/', include('dashboard.urls')),
     path('blog/', include('blog.urls')),
     path('trading/', include('trading.urls')),
     
+    
     # Authentication URLs
     path('register/', user_views.register, name='register'),
     path('verification/', user_views.kyc_upload, name='verification'),
+    path('accounts/', include('users.urls')), 
     path('accounts/', include('django.contrib.auth.urls')),
+        
+    
 ]
 
 # CKEditor URLs

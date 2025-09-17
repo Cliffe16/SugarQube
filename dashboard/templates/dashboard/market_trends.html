@@ -195,7 +195,7 @@
                             select: {
                                 fill: 'none',
                                 style: {
-                                    color: '#006affff',
+                                    color: '#1E3A8A',
                                     fontWeight: '700',
                                 }
                             }
@@ -226,7 +226,7 @@
                     },
                     plotLines: [{
                         value: currentPrice,
-                        color: '#006affff',
+                        color: '#047857',
                         width: 1,
                         zIndex: 4,
                         dashStyle: 'dot',
@@ -236,7 +236,7 @@
                             x: 65,
                             style: { color: 'white' },
                             formatter: function() {
-                            return '<div style="background-color:#006affff; padding: 4px 8px; border-radius: 4px; font-size:12px;">' + this.options.label.text + '</div>';
+                            return '<div style="background-color:#047857; padding: 4px 8px; border-radius: 4px; font-size:12px;">' + this.options.label.text + '</div>';
                             },
                             useHTML: true
                         }
@@ -281,7 +281,7 @@
                     id: 'main-series',
                     name: `Sugar Price (${selectedCurrency})`,
                     data: chartData,
-                    color: '#006affff',
+                    color: '#047857',
                 }],
                 responsive: {
                     rules: [{

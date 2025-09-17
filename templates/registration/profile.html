@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Settings | SugarQube{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+    <div class="text-center">
+        <h1 class="text-3xl font-bold text-gray-900">Profile</h1>
+        <p class="text-gray-600 mt-2 mb-8">Manage your account and verification status.</p>
+    </div>
+
+    <div class="mt-8">
+        <h2 class="text-2xl font-semibold text-gray-800 border-b pb-2 mb-6">KYC Verification</h2>
+
+        {% if kyc_instance and kyc_instance.is_approved %}
+            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4" role="alert">
+                <p class="font-bold">Your account is verified.</p>
+                <p>You can now access all features of the platform.</p>
+            </div>
+        {% elif kyc_instance %}
+             <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6" role="alert">
+                <p class="font-bold">Your documents are pending review.</p>
+                <p>An administrator will review your documents shortly. You will be notified once the process is complete.</p>
+            </div>
+        {% else %}
+            <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-6" role="alert">
+                <p class="font-bold">Please upload your documents.</p>
+                <p>To access the trading features of SugarQube, you need to upload your KYC documents for verification.</p>
+            </div>
+        {% endif %}
+
+
+        <form method="post" enctype="multipart/form-data" class="space-y-6 mt-6">
+            {% csrf_token %}
+
+            {% for field in form %}
+                <div class="space-y-1">
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-semibold text-gray-800">{{ field.label }}</label>
+                    {{ field }}
+                    {% for error in field.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            <div class="pt-4">
+                 <button type="submit" class="w-full bg-green-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center">
+                    <i data-feather="upload-cloud" class="h-5 w-5 mr-2"></i>
+                    Upload Documents
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

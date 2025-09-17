@@ -4,6 +4,10 @@ from .forms import CustomUserCreationForm, KYCForm
 from .models import KYC
 from django.contrib.auth.decorators import login_required
 
+@login_required
+def profile(request):
+    return render(request, 'registration/profile.html')
+
 def register(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
@@ -32,7 +36,7 @@ def kyc_upload(request):
             kyc.user = request.user
             kyc.save()
             messages.success(request, 'KYC documents uploaded successfully. Please wait for admin approval.')
-            return redirect('market_trends')
+            return redirect('profile')
     else:
         try:
             kyc_instance = request.user.kyc
