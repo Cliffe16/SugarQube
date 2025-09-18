@@ -3,10 +3,16 @@ from .models import SugarListing, Order
 
 @admin.register(SugarListing)
 class SugarListingAdmin(admin.ModelAdmin):
-    list_display = ['seller', 'sugar_type', 'origin', 'price_per_bag', 'quantity_available', 'minimum_order_quantity']
-    list_display_links = ['seller', 'sugar_type', 'origin']
-    list_filter = ['sugar_type', 'origin', 'seller']
-    search_fields = ['seller__user__username', 'sugar_type', 'origin', 'specifications']
+    list_display = ['sugar_type', 'company_name', 'origin', 'price_per_bag', 'quantity_available', 'minimum_order_quantity']
+    list_display_links = ['sugar_type', 'company_name', 'origin']
+    list_filter = ['sugar_type', 'origin', 'seller__user__company_name']
+    search_fields = ['seller__user__company_name', 'sugar_type', 'origin', 'specifications']
+    
+    def company_name(self, obj):
+        if obj.seller:
+            return obj.seller.user.company_name
+        return "N/A"
+    company_name.short_description = 'Company Name'
     
 
 @admin.register(Order)

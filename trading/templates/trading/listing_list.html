@@ -2,19 +2,38 @@
 {% block title %}Sugar Trading | SugarQube{% endblock %}
 
 {% block content %}
-<h1 class="text-3xl font-bold text-gray-800 mb-6">Sugar Marketplace</h1>
+<div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">Sugar Marketplace</h1>
+    <form method="GET" action="{% url 'listing_list' %}" class="mt-4 sm:mt-0">
+        <div class="flex items-center space-x-2">
+            <label for="sort" class="text-sm font-medium text-gray-700 flex-shrink-0">Sort by:</label>
+            <select name="sort" id="sort" onchange="this.form.submit()" class="appearance-none bg-transparent border-none text-gray-700 font-medium text-sm focus:outline-none focus:ring-0">
+                <option value="seller__user__company_name" {% if current_sort == 'seller__user__company_name' %}selected{% endif %}>Company (A-Z)</option>
+                <option value="-seller__user__company_name" {% if current_sort == '-seller__user__company_name' %}selected{% endif %}>Company (Z-A)</option>
+                <option value="price_per_bag" {% if current_sort == 'price_per_bag' %}selected{% endif %}>Price (Low to High)</option>
+                <option value="-price_per_bag" {% if current_sort == '-price_per_bag' %}selected{% endif %}>Price (High to Low)</option>
+                <option value="-quantity_available" {% if current_sort == '-quantity_available' %}selected{% endif %}>Quantity (High to Low)</option>
+                <option value="quantity_available" {% if current_sort == 'quantity_available' %}selected{% endif %}>Quantity (Low to High)</option>
+            </select>
+        </div>
+    </form>
+</div>
+
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for listing in listings %}
     <div class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col hover:shadow-xl transition-shadow duration-300">
         <div class="p-6 flex-grow">
-            <h2 class="text-xl font-bold text-indigo-900">{{ listing.sugar_type }}</h2>
-            <p class="text-sm text-gray-500 mb-4">Origin: {{ listing.origin }}</p>
-            <div class="text-3xl font-bold text-green-600" data-kes-price="{{ listing.price_per_bag }}">KES {{ listing.price_per_bag }} <span class="text-base font-normal text-gray-500">/ 50kg bag</span></div>
-            <ul class="mt-4 space-y-2 text-gray-700">
-                <li class="flex items-center"><i data-feather="box" class="h-5 w-5 mr-2 text-gray-400"></i><strong>Available:</strong><span class="ml-2">{{ listing.quantity_available }} bags</span></li>
-                <li class="flex items-center"><i data-feather="shopping-cart" class="h-5 w-5 mr-2 text-gray-400"></i><strong>Min. Order:</strong><span class="ml-2">{{ listing.minimum_order_quantity }} bags</span></li>
-            </ul>
+            <h2 class="text-xl font-bold text-indigo-900 mb-2">{{ listing.seller.user.company_name }}</strong></h2>
+            <div class="border-t border-gray-200 pt-4 mt-2">
+                <p class="text-sm text-gray-600 mb-1"><strong>Type:</strong> {{ listing.sugar_type }}</p>
+                <p class="text-sm text-gray-600 mb-4"><strong>Origin:</strong> {{ listing.origin }}</p>
+                <div class="text-3xl font-bold text-green-600 mb-4" data-kes-price="{{ listing.price_per_bag }}">KES {{ listing.price_per_bag }} <span class="text-base font-normal text-gray-500">/ 50kg bag</span></div>
+                <ul class="space-y-2 text-gray-700">
+                    <li class="flex items-center"><i data-feather="box" class="h-5 w-5 mr-2 text-gray-400"></i><strong>Available:</strong><span class="ml-2">{{ listing.quantity_available }} bags</span></li>
+                    <li class="flex items-center"><i data-feather="shopping-cart" class="h-5 w-5 mr-2 text-gray-400"></i><strong>Min. Order:</strong><span class="ml-2">{{ listing.minimum_order_quantity }} bags</span></li>
+                </ul>
+            </div>
         </div>
         <div class="p-6 bg-gray-50">
             <a href="{% url 'listing_detail' listing.pk %}" class="block w-full text-center bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">View & Place Order</a>

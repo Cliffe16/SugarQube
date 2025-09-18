@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser, KYC, Seller
+from trading.models import SugarListing
 
 class KYCInline(admin.StackedInline):
     model = KYC
@@ -35,4 +36,12 @@ class KYCAdmin(admin.ModelAdmin):
 
 @admin.register(Seller)
 class SellerAdmin(admin.ModelAdmin):
-    list_display = ['user']
+    list_display = ['user', 'company_name', 'available_listings_count']
+
+    def company_name(self, obj):
+        return obj.user.company_name
+    company_name.short_description = 'Company Name'
+
+    def available_listings_count(self, obj):
+        return SugarListing.objects.filter(seller=obj).count()
+    available_listings_count.short_description = 'Available Listings'

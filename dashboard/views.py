@@ -81,7 +81,7 @@ def landing_chart_data(request):
     """
     Provides sugar price data from the calendar year three years prior to the current year.
     """
-    target_year = datetime.now().year - 3 # Calculates 2022
+    target_year = datetime.now().year - 5 # Calculates 2020
     prices = SugarPrice.objects.filter(date__year=target_year).order_by('date')
     
     chart_data = []

@@ -9,8 +9,26 @@ def listing_list(request):
     """
     This view returns a list of all available sugar products
     """
-    listings = SugarListing.objects.filter(quantity_available__gt=0).order_by('sugar_type')
-    return render(request, 'trading/listing_list.html', {'listings': listings})
+    sort_by = request.GET.get('sort', 'seller__user__company_name') # Default sort
+    valid_sort_fields = [
+        'seller__user__company_name', '-seller__user__company_name',
+        'price_per_bag', '-price_per_bag',
+        'quantity_available', '-quantity_available',
+        'sugar_type', '-sugar_type',
+        'origin', '-origin',
+        'minimum_order_quantity', '-minimum_order_quantity'
+    ]
+
+    if sort_by not in valid_sort_fields:
+        sort_by = 'seller__user__company_name'
+
+    listings = SugarListing.objects.filter(quantity_available__gt=0).order_by(sort_by)
+    
+    context = {
+        'listings': listings,
+        'current_sort': sort_by
+    }
+    return render(request, 'trading/listing_list.html', context)
 
 @login_required
 def listing_detail(request, pk):

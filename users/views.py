@@ -1,11 +1,11 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from .forms import CustomUserCreationForm, KYCForm, ChangePhoneNumberForm, CustomPasswordChangeForm
-from .models import KYC
+from .models import KYC, Seller
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.conf import settings
-from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth import update_session_auth_hash, logout
 
 @login_required
 def profile(request):
@@ -29,7 +29,7 @@ def profile(request):
             else:
                 messages.error(request, 'Please correct the errors in the KYC form.')
             # To show errors, we'll pass the form back in the context
-            context = { 'kyc_instance': kyc_instance, 'form': kyc_form, 'password_form': CustomPasswordChangeForm(request.user), 'phone_form': ChangePhoneNumberForm(instance=request.user) }
+            context = { 'kyc_instance': kyc_instance, 'form': kyc_form, 'password_form': CustomPasswordChangeForm(request.user), 'phone_form': ChangePhoneNumberForm() }
             return render(request, 'registration/profile.html', context)
 
 
@@ -42,7 +42,7 @@ def profile(request):
             else:
                 messages.error(request, 'Please correct the password errors.')
             # To show errors, pass the form back in the context
-            context = { 'kyc_instance': kyc_instance, 'form': KYCForm(instance=kyc_instance), 'password_form': password_form, 'phone_form': ChangePhoneNumberForm(instance=request.user) }
+            context = { 'kyc_instance': kyc_instance, 'form': KYCForm(instance=kyc_instance), 'password_form': password_form, 'phone_form': ChangePhoneNumberForm() }
             return render(request, 'registration/profile.html', context)
 
 
@@ -62,7 +62,7 @@ def profile(request):
     # GET request handling
     kyc_form = KYCForm(instance=kyc_instance)
     password_form = CustomPasswordChangeForm(request.user)
-    phone_form = ChangePhoneNumberForm(instance=request.user)
+    phone_form = ChangePhoneNumberForm()
 
     context = {
         'kyc_instance': kyc_instance,
@@ -116,3 +116,26 @@ def change_phone_number(request):
     else:
         form = ChangePhoneNumberForm(instance=request.user)
     return render(request, 'registration/change_phone_number.html', {'form': form})
+
+@login_required
+def terminate_account(request):
+    if request.method == 'POST':
+        user = request.user
+        choice = request.POST.get('termination_choice')
+
+        if user.is_seller and user.is_verified_buyer and choice == 'seller':
+            # Terminate only the seller account
+            user.is_seller = False
+            user.save()
+            Seller.objects.filter(user=user).delete()
+            messages.success(request, 'Your seller account has been successfully terminated.')
+            return redirect('profile')
+        else:
+            # Terminate the entire account
+            user.is_active = False
+            user.save()
+            logout(request)
+            messages.success(request, 'Your account has been successfully terminated.')
+            return redirect('home')
+
+    return render(request, 'registration/terminate_account.html')

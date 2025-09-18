@@ -13,7 +13,7 @@
                     <input type="hidden" name="tag" value="{{ current_tag|default:'' }}">
                     <div class="flex items-center space-x-2">
                         <label for="sort" class="text-sm font-medium text-gray-700 flex-shrink-0">Sort by:</label>
-                        <select name="sort" id="sort" onchange="this.form.submit()" class="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 text-sm">
+                        <select name="sort" id="sort" onchange="this.form.submit()" class="appearance-none bg-transparent border-none text-gray-700 font-medium text-sm focus:outline-none focus:ring-0">
                             <option value="-created_at" {% if current_sort == '-created_at' %}selected{% endif %}>Newest First</option>
                             <option value="created_at" {% if current_sort == 'created_at' %}selected{% endif %}>Oldest First</option>
                             <option value="title" {% if current_sort == 'title' %}selected{% endif %}>Alphabetical (A-Z)</option>
@@ -54,7 +54,7 @@
             {% endfor %}
         </div>
 
-        <div class="lg:col-span-4 mt-8 lg:mt-0">
+        <div class="lg:col-span-4 mt-8 lg:mt-16">
             <div class="sticky top-24 space-y-8">
 
                 <div class="bg-white rounded-lg shadow-lg p-6">

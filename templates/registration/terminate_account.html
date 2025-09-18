@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Terminate Account | SugarQube{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+    <div class="text-center">
+        <h1 class="text-3xl font-bold text-red-700">Terminate Account</h1>
+        <p class="text-gray-600 mt-2 mb-8">This is a permanent action. Please review the consequences before proceeding.</p>
+    </div>
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        {% if user.is_seller and user.is_verified_buyer %}
+        <div class="space-y-4">
+            <p class="font-semibold text-gray-800">You have both a buyer and a seller account. Please select which you would like to terminate:</p>
+            <div class="p-3 border rounded-md">
+                <label class="flex items-center">
+                    <input type="radio" name="termination_choice" value="seller" class="form-radio text-red-600" checked>
+                    <span class="ml-2">Terminate <strong>Seller Account Only</strong><br><small class="text-gray-500">Your buyer account will remain active.</small></span>
+                </label>
+            </div>
+            <div class="p-3 border rounded-md">
+                <label class="flex items-center">
+                    <input type="radio" name="termination_choice" value="all" class="form-radio text-red-600">
+                    <span class="ml-2">Terminate <strong>Entire Account</strong><br><small class="text-gray-500">Both your buyer and seller profiles will be deleted.</small></span>
+                </label>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="pt-4">
+             <button type="submit" class="w-full bg-red-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center">
+                <i data-feather="alert-triangle" class="h-5 w-5 mr-2"></i>
+                I understand, terminate my account
+            </button>
+            <a href="{% url 'profile' %}" class="block w-full text-center mt-4 text-gray-600 font-semibold py-2 px-4 rounded-lg hover:bg-gray-100 transition-colors">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

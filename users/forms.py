@@ -12,9 +12,17 @@ class CustomUserCreationForm(UserCreationForm):
 class CustomPasswordChangeForm(PasswordChangeForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for fieldname in ['old_password', 'new_password1', 'new_password2']:
-            self.fields[fieldname].widget.attrs = {'class': 'appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm'}
+        for fieldname, placeholder in [
+            ('old_password', 'Current Password'),
+            ('new_password1', 'New Password'),
+            ('new_password2', 'Repeat New Password')
+        ]:
+            self.fields[fieldname].widget.attrs = {
+                'class': 'appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm',
+                'placeholder': placeholder
+            }
             self.fields[fieldname].help_text = ''
+            self.fields[fieldname].label = ''
 
 
 class ChangePhoneNumberForm(forms.ModelForm):
@@ -22,7 +30,13 @@ class ChangePhoneNumberForm(forms.ModelForm):
         model = CustomUser
         fields = ['phone_number']
         widgets = {
-            'phone_number': forms.TextInput(attrs={'class': 'appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm'})
+            'phone_number': forms.TextInput(attrs={
+                'class': 'appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm',
+                'placeholder': 'e.g., +254712345678'
+            })
+        }
+        labels = {
+            'phone_number': ''
         }
 
         
