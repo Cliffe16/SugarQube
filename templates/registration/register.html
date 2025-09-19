@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.css"/>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -17,6 +18,13 @@
             list-style-type: none;
             padding: 0;
             margin: 0;
+        }
+        /* Style adjustments for Intl Tel Input */
+        .iti {
+            width: 100%;
+        }
+        .iti__selected-dial-code {
+            font-size: 0.875rem; /* text-sm */
         }
     </style>
 </head>
@@ -61,16 +69,27 @@
             </p>
         </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
      <script>
         feather.replace();
         // This script will apply the correct styles to the form fields rendered by Django
         document.addEventListener('DOMContentLoaded', function() {
             const inputs = document.querySelectorAll('form input, form select');
             inputs.forEach(input => {
-                if (input.type !== 'checkbox') {
+                if (input.type !== 'checkbox' && !input.classList.contains('phone-input')) {
                      input.classList.add('appearance-none', 'rounded-md', 'relative', 'block', 'w-full', 'px-3', 'py-3', 'border', 'border-gray-300', 'placeholder-gray-500', 'text-gray-900', 'focus:outline-none', 'focus:ring-green-500', 'focus:border-green-500', 'sm:text-sm');
                 }
             });
+
+            // --- Intl Tel Input Initialization ---
+            const phoneInputField = document.querySelector(".phone-input");
+            if (phoneInputField) {
+                window.intlTelInput(phoneInputField, {
+                    initialCountry: "ke",
+                    separateDialCode: true,
+                    utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js",
+                });
+            }
         });
     </script>
 </body>

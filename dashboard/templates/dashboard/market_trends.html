@@ -64,25 +64,25 @@
                         <div class="space-y-3">
                             <div class="flex justify-between items-center">
                                 <span class="text-xs text-gray-600">ANNUAL HIGH:</span>
-                                <span class="font-semibold text-gray-900 text-sm" data-kes-price="{{ annual_max }}" id="annual-high">
+                                <span class="font-semibold text-gray-900 text-sm text-right" data-kes-price="{{ annual_max }}" id="annual-high">
                                     <span class="currency-symbol">KES</span> <span class="price-figure">{{ annual_max|floatformat:2 }}</span>
                                 </span>                        
                             </div>
                             <div class="flex justify-between items-center">
                                 <span class="text-xs text-gray-600">ANNUAL LOW:</span>
-                                <span class="font-semibold text-gray-900 text-sm" data-kes-price="{{ annual_min }}" id="annual-low">
+                                <span class="font-semibold text-gray-900 text-sm text-right" data-kes-price="{{ annual_min }}" id="annual-low">
                                     <span class="currency-symbol">KES</span> <span class="price-figure">{{ annual_min|floatformat:2 }}</span>
                                 </span>
                             </div>
                             <div class="flex justify-between items-center">
                                 <span class="text-xs text-gray-600">CHANGE</span>
-                                <span class="font-semibold text-sm" data-kes-price="{{ daily_change }}" id="daily-change">
+                                <span class="font-semibold text-sm text-right" data-kes-price="{{ daily_change }}" id="daily-change">
                                     <span class="currency-symbol">KES</span> <span class="price-figure">{{ daily_change|floatformat:2 }}</span>
                                 </span>
                             </div>
                             <div class="flex justify-between items-center">
                                 <span class="text-xs text-gray-600">CHANGE %</span>
-                                <span class="font-semibold text-sm" id="change-percent">{{ daily_change_percent|floatformat:2 }}%</span>
+                                <span class="font-semibold text-sm text-right" id="change-percent">{{ daily_change_percent|floatformat:2 }}%</span>
                             </div>
                         </div>
                     </div>
@@ -152,7 +152,7 @@
                 time: {
                     timezone: timezone
                 },
-                colors: ['#0000FF', '#0076BC', '#002C6D', '#7D9CC0']
+                colors: ['#10B981', '#047857', '#D1FAE5', '#ECFDF5']
             });
 
             chart = Highcharts.stockChart('container', {
@@ -317,9 +317,21 @@
         const dailyChangePercent = {{ daily_change_percent|default:0 }};
 
         const changeElement = document.getElementById('price-change');
-        const changeSymbol = dailyChange >= 0 ? '▲' : '▼';
-        const changeClass = dailyChange >= 0 ? 'text-green-600' : 'text-red-600';
-        changeElement.textContent = `${changeSymbol} ${Math.abs(dailyChangePercent).toFixed(2)}%`;
+        let changeSymbol = '';
+        let changeClass = '';
+
+        if (dailyChange > 0) {
+            changeSymbol = '▲';
+            changeClass = 'text-green-600';
+        } else if (dailyChange < 0) {
+            changeSymbol = '▼';
+            changeClass = 'text-red-600';
+        } else {
+            changeSymbol = ''; // No symbol for zero change
+            changeClass = 'text-gray-500'; // Black color for zero change
+        }
+        
+        changeElement.textContent = `${changeSymbol} ${Math.abs(dailyChangePercent).toFixed(2)}%`.trim();
         changeElement.className = `text-sm ${changeClass} font-semibold`;
     });
     </script>

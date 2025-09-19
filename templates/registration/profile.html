@@ -49,6 +49,9 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const tabs = document.querySelectorAll('.tab-link');
@@ -57,6 +60,8 @@
             'security-tab-link': document.getElementById('security-tab-content'),
             'account-type-tab-link': document.getElementById('account-type-tab-content'),
         };
+
+        let phoneInputInitialized = false;
 
         tabs.forEach(tab => {
             tab.addEventListener('click', (event) => {
@@ -74,8 +79,22 @@
                     content.classList.add('hidden');
                 });
 
-                if (tabContents[tab.id]) {
-                    tabContents[tab.id].classList.remove('hidden');
+                const activeContent = tabContents[tab.id];
+                if (activeContent) {
+                    activeContent.classList.remove('hidden');
+
+                    // Initialize the phone input only when the security tab is shown for the first time
+                    if (tab.id === 'security-tab-link' && !phoneInputInitialized) {
+                        const phoneInputField = activeContent.querySelector(".phone-input");
+                        if (phoneInputField) {
+                            window.intlTelInput(phoneInputField, {
+                                initialCountry: "ke",
+                                separateDialCode: true,
+                                utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js",
+                            });
+                            phoneInputInitialized = true;
+                        }
+                    }
                 }
             });
         });

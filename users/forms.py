@@ -3,11 +3,21 @@ from .models import CustomUser, KYC
 from django import forms
 from django.core.exceptions import ValidationError
 import os
+from django.forms import TelInput
 
 class CustomUserCreationForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = CustomUser
         fields = UserCreationForm.Meta.fields + ('first_name', 'last_name', 'email', 'phone_number', 'company_name')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['phone_number'].widget = TelInput(attrs={
+            'class': 'phone-input appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm',
+            'placeholder': '712 345678'
+        })
+        self.fields['phone_number'].required = False
+
 
 class CustomPasswordChangeForm(PasswordChangeForm):
     def __init__(self, *args, **kwargs):
@@ -30,9 +40,9 @@ class ChangePhoneNumberForm(forms.ModelForm):
         model = CustomUser
         fields = ['phone_number']
         widgets = {
-            'phone_number': forms.TextInput(attrs={
-                'class': 'appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm',
-                'placeholder': 'e.g., +254712345678'
+            'phone_number': TelInput(attrs={
+                'class': 'phone-input appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm',
+                'placeholder': '712 345678'
             })
         }
         labels = {
