@@ -1,9 +1,12 @@
+# trading/views.py
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
 from .models import SugarListing, Order
 from .forms import OrderForm
+from users.models import Seller
 
 def listing_list(request):
     """
@@ -22,8 +25,19 @@ def listing_list(request):
     if sort_by not in valid_sort_fields:
         sort_by = 'seller__user__company_name'
 
-    listings = SugarListing.objects.filter(quantity_available__gt=0).order_by(sort_by)
-    
+    # Fetch all listings from the 'sugarprices' database
+    listings = SugarListing.objects.using('sugarprices').filter(quantity_available__gt=0)
+
+    # Fetch the related seller and user data from the 'credentials' database
+    for listing in listings:
+        listing.seller = Seller.objects.using('credentials').get(pk=listing.seller_id)
+
+    # Sort the listings in Python
+    if 'seller__user__company_name' in sort_by:
+        listings = sorted(listings, key=lambda l: l.seller.user.company_name, reverse=sort_by.startswith('-'))
+    else:
+        listings = sorted(listings, key=lambda l: getattr(l, sort_by.replace('-', '')), reverse=sort_by.startswith('-'))
+
     context = {
         'listings': listings,
         'current_sort': sort_by
@@ -52,7 +66,7 @@ def place_order(request, pk):
     listing = get_object_or_404(SugarListing, pk=pk)
 
     # Only render the order URL if the user submitted the form(i.e request is POST)
-    if request.method == 'POST':    
+    if request.method == 'POST':
         form = OrderForm(request.POST)
         if form.is_valid():
             """
