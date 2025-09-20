@@ -72,16 +72,52 @@ WSGI_APPLICATION = 'sugarqube.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# sugarqube/settings.py
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'neondb',
+        'NAME': 'SugarQubeDB',
         'USER': 'neondb_owner',
         'PASSWORD': 'npg_e4BMcECL0UTA',
-        'HOST': 'ep-plain-sound-a89ygh1m-pooler.eastus2.azure.neon.tech',
+        'HOST': 'ep-plain-sound-a89ygh1m.eastus2.azure.neon.tech', # Unpooled host
         'PORT': '5432',
+        'OPTIONS': {
+            'sslmode': 'require',
+            'options': '-c search_path=public'
+        },
+    },
+    'credentials': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'SugarQubeDB',
+        'USER': 'neondb_owner',
+        'PASSWORD': 'npg_e4BMcECL0UTA',
+        'HOST': 'ep-plain-sound-a89ygh1m.eastus2.azure.neon.tech', # Unpooled host
+        'PORT': '5432',
+        'OPTIONS': {
+            'sslmode': 'require',
+            'options': '-c search_path=credentials,public'
+        },
+    },
+    'sugarprices': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'SugarQubeDB',
+        'USER': 'neondb_owner',
+        'PASSWORD': 'npg_e4BMcECL0UTA',
+        'HOST': 'ep-plain-sound-a89ygh1m.eastus2.azure.neon.tech', # Unpooled host
+        'PORT': '5432',
+        'OPTIONS': {
+            'sslmode': 'require',
+            'options': '-c search_path=sugarprices,public'
+        },
     }
 }
+
+DATABASE_ROUTERS = [
+    'sugarqube.credentials_router.CredentialsRouter',
+    'sugarqube.sugarprices_router.SugarPricesRouter',
+    'sugarqube.public_router.PublicRouter',
+]
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators

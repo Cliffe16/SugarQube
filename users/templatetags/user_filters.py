@@ -4,6 +4,8 @@ register = template.Library()
 
 @register.filter
 def partially_hide(value):
+    if not value:
+        return ""
     if "@" in value:
         parts = value.split('@')
         local_part = parts[0]

@@ -1,3 +1,5 @@
+# users/middleware.py
+
 from django.shortcuts import redirect
 from django.urls import reverse
 
@@ -6,7 +8,7 @@ class KYCVerificationMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        if request.user.is_authenticated and not request.user.is_verified_buyer:
+        if request.user.is_authenticated and not request.user.is_verified_buyer and not request.user.is_superuser:
             # Allow access to profile, logout, and admin
             if request.path not in [reverse('profile'), reverse('logout'), '/admin/', '/admin/login/']:
                 return redirect('profile')

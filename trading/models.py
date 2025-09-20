@@ -1,12 +1,13 @@
+# trading/models.py
+
 from django.db import models
 from django.conf import settings
-from users.models import Seller
 
 class SugarListing(models.Model):
     """
     This model represents sugar products in the marketplace
     """
-    seller = models.ForeignKey(Seller, on_delete=models.CASCADE, null=True, blank=True)
+    seller = models.ForeignKey('users.Seller', on_delete=models.CASCADE, null=True, blank=True, db_constraint=False)
     sugar_type = models.CharField(max_length=255)
     origin = models.CharField(max_length=255)
     quantity_available = models.PositiveIntegerField(help_text="In 50kg bags")
@@ -31,7 +32,7 @@ class Order(models.Model):
         ('Delivered', 'Delivered'),
     ]
 
-    buyer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE) #Buyer is a user
+    buyer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, db_constraint=False) #Buyer is a user
     # Add related_name for easier reverse lookup
     listing = models.ForeignKey(SugarListing, related_name='orders', on_delete=models.CASCADE) #product is ordered
     quantity = models.PositiveIntegerField()

@@ -10,7 +10,7 @@ class Command(BaseCommand):
         self.stdout.write("Preparing for a new bulk import...")
         
         # 1. Clear existing data for a fresh start
-        count, _ = SugarPrice.objects.all().delete()
+        count, _ = SugarPrice.objects.using('sugarprices').all().delete()
         self.stdout.write(self.style.SUCCESS(f"Cleared {count} old price records."))
 
         file_path = 'dashboard/management/commands/sugarprices.csv'
@@ -53,7 +53,7 @@ class Command(BaseCommand):
             # 2. Perform the bulk insert
             if objects_to_create:
                 self.stdout.write("Starting bulk import into the database...")
-                SugarPrice.objects.bulk_create(objects_to_create, batch_size=1000)
+                SugarPrice.objects.using('sugarprices').bulk_create(objects_to_create, batch_size=1000)
                 self.stdout.write(self.style.SUCCESS(f"\nImport complete!"))
                 self.stdout.write(self.style.SUCCESS(f"Successfully imported {len(objects_to_create)} new records."))
             else:
