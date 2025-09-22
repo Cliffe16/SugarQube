@@ -1,328 +1,333 @@
 {% extends 'base.html' %}
-    {% block title %}Market Analysis | SugarQube{% endblock %}
-    {% block content %}
-    <div class="max-w-full mx-auto">
+{% block title %}Market Analysis | SugarQube{% endblock %}
+{% block content %}
+<div class="max-w-full mx-auto">
 
-        {% if user.is_authenticated and not user.is_verified_buyer %}
-        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6" role="alert">
-            <p class="font-bold">Account Verification Required</p>
-            <p>Your account is not yet verified. To access the trading marketplace, please upload your KYC documents for approval.</p>
-            <a href="{% url 'verification' %}" class="mt-2 inline-block bg-yellow-500 text-white font-bold py-2 px-4 rounded hover:bg-yellow-600">
-                Upload Documents Now
-            </a>
-        </div>
-        {% endif %}
+    {% if user.is_authenticated and not user.is_verified_buyer %}
+    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6" role="alert">
+        <p class="font-bold">Account Verification Required</p>
+        <p>Your account is not yet verified. To access the trading marketplace, please upload your KYC documents for approval.</p>
+        <a href="{% url 'verification' %}" class="mt-2 inline-block bg-yellow-500 text-white font-bold py-2 px-4 rounded hover:bg-yellow-600">
+            Upload Documents Now
+        </a>
+    </div>
+    {% endif %}
 
-        <div class="grid grid-cols-12 gap-6">
+    <div class="grid grid-cols-12 gap-6">
 
-            <div class="col-span-10">
-                <div class="card p-6">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h3 class="text-sm font-medium text-gray-500 mb-1">PRICE CHART</h3>
-                            <h2 class="text-2xl font-bold text-indigo-900">Sugar Market Price Trend</h2>
+        <div class="col-span-10">
+            <div class="card p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500 mb-1">PRICE CHART</h3>
+                        <h2 class="text-2xl font-bold text-indigo-900">Sugar Market Price Trend</h2>
+                    </div>
+                </div>
+
+                <div style="position: relative;">
+                    <div class="absolute top-0 left-[350px] z-10 mt-2.5 ml-10">
+                        <div class="flex items-center space-x-2">
+                                <span class="border-l border-gray-300 h-6 mx-2"></span>
+                            <label for="timezone" class="text-sm font-medium text-gray-500"></label>
+                            <select id="timezone" class="block w-48 pl-1 pr-1 py-1 text-xs bg-white border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md appearance-none">
+                                <option value="Africa/Nairobi" data-label="EAT (Nairobi)" selected>EAT (Nairobi)</option>
+                                <option value="UTC" data-label="UTC">UTC</option>
+                                <option value="Europe/London" data-label="GMT (London)">GMT (London)</option>
+                                <option value="America/New_York" data-label="EST (New York)">EST (New York)</option>
+                                <option value="Asia/Tokyo" data-label="JST (Tokyo)">JST (Tokyo)</option>
+                            </select>
                         </div>
                     </div>
 
-                    <div style="position: relative;">
-                        <div class="absolute top-0 left-[350px] z-10 mt-2.5 ml-10">
-                            <div class="flex items-center space-x-2">
-                                    <span class="border-l border-gray-300 h-6 mx-2"></span>
-                                <label for="timezone" class="text-sm font-medium text-gray-500"></label>
-                                <select id="timezone" class="block w-48 pl-1 pr-1 py-1 text-xs bg-white border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md appearance-none">
-                                    <option value="Africa/Nairobi" data-label="EAT (Nairobi)" selected>EAT (Nairobi)</option>
-                                    <option value="UTC" data-label="UTC">UTC</option>
-                                    <option value="Europe/London" data-label="GMT (London)">GMT (London)</option>
-                                    <option value="America/New_York" data-label="EST (New York)">EST (New York)</option>
-                                    <option value="Asia/Tokyo" data-label="JST (Tokyo)">JST (Tokyo)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div id="container" style="height: 700px; min-width: 310px;"></div>
-                    </div>
+                    <div id="container" style="height: 700px; min-width: 310px;"></div>
                 </div>
             </div>
-            <div class="col-span-2 space-y-4">
+        </div>
+        <div class="col-span-2 space-y-4">
 
-                <div class="card p-6 text-center">
-                    <div class="text-sm text-gray-500 mb-1">PRICE</div>
-                    <div class="text-3xl font-bold text-gray-900 mb-2" data-kes-price="{{ latest_price }}" id="latest-price">
-                        <span class="currency-symbol">KES</span> <span class="price-figure">{{ latest_price|floatformat:2 }}</span>
-                    </div>
-                    <div class="flex items-center justify-center">
-                        <span class="text-sm font-semibold" id="price-change"></span>
-                    </div>
+            <div class="card p-6 text-center">
+                <div class="text-sm text-gray-500 mb-1">PRICE</div>
+                <div class="text-3xl font-bold text-gray-900 mb-2" data-kes-price="{{ latest_price }}" id="latest-price">
+                    <span class="currency-symbol">KES</span> <span class="price-figure">{{ latest_price|floatformat:2 }}</span>
                 </div>
-                <div class="card p-6 text-center">
-                    <div class="text-sm text-gray-500 mb-1">EXCHANGE RATE</div>
-                    <div class="text-3xl font-bold text-gray-900 mb-2">{{ EXCHANGE_RATE_USD|floatformat:2 }}</div>
-                    <div class="text-sm text-gray-500">KES/USD</div>
+                <div class="flex items-center justify-center">
+                    <span class="text-sm font-semibold" id="price-change"></span>
                 </div>
-                <div class="card p-4">
-                    <div class="grid grid-cols-1 gap-4">
-                        <div class="space-y-3">
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs text-gray-600">ANNUAL HIGH:</span>
-                                <span class="font-semibold text-gray-900 text-sm text-right" data-kes-price="{{ annual_max }}" id="annual-high">
-                                    <span class="currency-symbol">KES</span> <span class="price-figure">{{ annual_max|floatformat:2 }}</span>
-                                </span>                        
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs text-gray-600">ANNUAL LOW:</span>
-                                <span class="font-semibold text-gray-900 text-sm text-right" data-kes-price="{{ annual_min }}" id="annual-low">
-                                    <span class="currency-symbol">KES</span> <span class="price-figure">{{ annual_min|floatformat:2 }}</span>
-                                </span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs text-gray-600">CHANGE</span>
-                                <span class="font-semibold text-sm text-right" data-kes-price="{{ daily_change }}" id="daily-change">
-                                    <span class="currency-symbol">KES</span> <span class="price-figure">{{ daily_change|floatformat:2 }}</span>
-                                </span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs text-gray-600">CHANGE %</span>
-                                <span class="font-semibold text-sm text-right" id="change-percent">{{ daily_change_percent|floatformat:2 }}%</span>
-                            </div>
+            </div>
+            <div class="card p-6 text-center">
+                <div class="text-sm text-gray-500 mb-1">EXCHANGE RATE</div>
+                <div class="text-3xl font-bold text-gray-900 mb-2">{{ EXCHANGE_RATE_USD|floatformat:2 }}</div>
+                <div class="text-sm text-gray-500">KES/USD</div>
+            </div>
+            <div class="card p-4">
+                <div class="grid grid-cols-1 gap-4">
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-600">ANNUAL HIGH:</span>
+                            <span class="font-semibold text-gray-900 text-sm text-right" data-kes-price="{{ annual_max }}" id="annual-high">
+                                <span class="currency-symbol">KES</span> <span class="price-figure">{{ annual_max|floatformat:2 }}</span>
+                            </span>                        
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-600">ANNUAL LOW:</span>
+                            <span class="font-semibold text-gray-900 text-sm text-right" data-kes-price="{{ annual_min }}" id="annual-low">
+                                <span class="currency-symbol">KES</span> <span class="price-figure">{{ annual_min|floatformat:2 }}</span>
+                            </span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-600">CHANGE</span>
+                            <span class="font-semibold text-sm text-right" data-kes-price="{{ daily_change }}" id="daily-change">
+                                <span class="currency-symbol">KES</span> <span class="price-figure">{{ daily_change|floatformat:2 }}</span>
+                            </span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-600">CHANGE %</span>
+                            <span class="font-semibold text-sm text-right" id="change-percent">{{ daily_change_percent|floatformat:2 }}%</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    {% endblock %}
-    {% block scripts %}
-    <link rel="stylesheet" type="text/css" href="https://code.highcharts.com/css/stocktools/gui.css">
-    <link rel="stylesheet" type="text/css" href="https://code.highcharts.com/css/annotations/popup.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.34/moment-timezone-with-data.min.js"></script>
-    <script src="https://code.highcharts.com/stock/highstock.js"></script>
-    <script src="https://code.highcharts.com/stock/indicators/indicators.js"></script>
-    <script src="https://code.highcharts.com/stock/indicators/sma.js"></script>
-    <script src="https://code.highcharts.com/stock/indicators/ema.js"></script>
-    <script src="https://code.highcharts.com/stock/indicators/rsi.js"></script>
-    <script src="https://code.highcharts.com/stock/indicators/macd.js"></script>
-    <script src="https://code.highcharts.com/stock/indicators/bollinger-bands.js"></script>
-    <script src="https://code.highcharts.com/stock/indicators/stochastic.js"></script>
-    <script src="https://code.highcharts.com/stock/modules/annotations.js"></script>
-    <script src="https://code.highcharts.com/stock/modules/annotations-advanced.js"></script>
-    <script src="https://code.highcharts.com/stock/modules/price-indicator.js"></script>
-    <script src="https://code.highcharts.com/stock/modules/full-screen.js"></script>
-    <script src="https://code.highcharts.com/stock/modules/stock-tools.js"></script>
-    <script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const rawData = {{ chart_data|safe }};
-        const timezoneSelect = document.getElementById('timezone');
-        const currencySelector = document.getElementById('currency-selector');
-        const exchangeRate = {{ EXCHANGE_RATE_USD|default:1.0 }};
-        let chart;
+</div>
 
-        function getConvertedData(currency) {
-            if (currency === 'USD') {
-                return rawData.map(point => [point[0], parseFloat((point[1] / exchangeRate).toFixed(2))]);
-            }
-            return rawData;
+{% endblock %}
+{% block scripts %}
+<link rel="stylesheet" type="text/css" href="https://code.highcharts.com/css/stocktools/gui.css">
+<link rel="stylesheet" type="text/css" href="https://code.highcharts.com/css/annotations/popup.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.34/moment-timezone-with-data.min.js"></script>
+
+<script src="https://code.highcharts.com/stock/highstock.js"></script>
+<script src="https://code.highcharts.com/stock/indicators/indicators.js"></script>
+<script src="https://code.highcharts.com/stock/indicators/sma.js"></script>
+<script src="https://code.highcharts.com/stock/indicators/ema.js"></script>
+<script src="https://code.highcharts.com/stock/indicators/bollinger-bands.js"></script>
+<script src="https://code.highcharts.com/stock/indicators/wma.js"></script>
+<script src="https://code.highcharts.com/stock/indicators/momentum.js"></script>
+<script src="https://code.highcharts.com/stock/indicators/roc.js"></script>
+<script src="https://code.highcharts.com/stock/indicators/cci.js"></script>
+<script src="https://code.highcharts.com/stock/indicators/cmo.js"></script>
+<script src="https://code.highcharts.com/stock/indicators/trix.js"></script>
+<script src="https://code.highcharts.com/stock/modules/annotations.js"></script>
+<script src="https://code.highcharts.com/stock/modules/annotations-advanced.js"></script>
+<script src="https://code.highcharts.com/stock/modules/price-indicator.js"></script>
+<script src="https://code.highcharts.com/stock/modules/full-screen.js"></script>
+<script src="https://code.highcharts.com/stock/modules/stock-tools.js"></script>
+<script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const rawData = {{ chart_data|safe }};
+    const timezoneSelect = document.getElementById('timezone');
+    const currencySelector = document.getElementById('currency-selector');
+    const exchangeRate = {{ EXCHANGE_RATE_USD|default:1.0 }};
+    let chart;
+
+    function getConvertedData(currency) {
+        if (!Array.isArray(rawData)) return [];
+        if (currency === 'USD' && exchangeRate && exchangeRate !== 0) {
+            return rawData.map(point => [
+                Number(point[0]), 
+                parseFloat((parseFloat(point[1]) / exchangeRate).toFixed(2))
+            ]);
+        }
+        return rawData.map(point => [Number(point[0]), parseFloat(point[1])]);
+    }
+
+    function updateTimezoneOptions() {
+        if (!timezoneSelect) return;
+        const options = timezoneSelect.options;
+        for (let i = 0; i < options.length; i++) {
+            const option = options[i];
+            const timezone = option.value;
+            const label = option.getAttribute('data-label');
+            const timeString = moment().tz(timezone).format('MMM D, h:mm A');
+            option.text = `${label} (${timeString})`;
+        }
+    }
+
+    function createChart(timezone) {
+        const selectedCurrency = currencySelector ? currencySelector.value : 'KES';
+        const chartData = getConvertedData(selectedCurrency);
+
+        if (!chartData || chartData.length === 0) {
+            document.getElementById('container').innerHTML =
+                '<div class="flex items-center justify-center h-full text-gray-500"><p>No data available</p></div>';
+            return;
         }
 
-        function updateTimezoneOptions() {
-            const options = timezoneSelect.options;
-            for (let i = 0; i < options.length; i++) {
-                const option = options[i];
-                const timezone = option.value;
-                const label = option.getAttribute('data-label');
-                const timeString = moment().tz(timezone).format('MMM D, h:mm A');
-                option.text = `${label} (${timeString})`;
-            }
+        const currentPrice = chartData[chartData.length - 1][1];
+
+        // Set a professional color palette for indicators
+        Highcharts.setOptions({
+            time: {
+                timezone: timezone
+            },
+            colors: ['#2962FF', '#FF6D00', '#9C27B0', '#FBC02D', '#666666']
+        });
+
+        if (chart) {
+            chart.destroy();
         }
 
-        function createChart(timezone) {
-            const selectedCurrency = currencySelector.value;
-            const chartData = getConvertedData(selectedCurrency);
-
-            if (!chartData || chartData.length === 0) {
-                document.getElementById('container').innerHTML =
-                    '<div class="flex items-center justify-center h-full text-gray-500"><p>No data available</p></div>';
-                return;
-            }
-
-            const currentPrice = chartData[chartData.length - 1][1];
-
-            Highcharts.setOptions({
-                time: {
-                    timezone: timezone
+        chart = Highcharts.stockChart('container', {
+            chart: {
+                backgroundColor: '#ffffff',
+                style: {
+                    fontFamily: 'Inter, sans-serif'
                 },
-                colors: ['#10B981', '#047857', '#D1FAE5', '#ECFDF5']
-            });
-
-            chart = Highcharts.stockChart('container', {
-                chart: {
-                    backgroundColor: '#ffffff',
+                spacingRight: 30
+            },
+            credits: {
+                enabled: false
+            },
+            rangeSelector: {
+                selected: 10,
+                buttons: [
+                    { type: 'month', count: 1, text: '1M' },
+                    { type: 'month', count: 3, text: '3M' },
+                    { type: 'month', count: 6, text: '6M' },
+                    { type: 'ytd', text: 'YTD' },
+                    { type: 'year', count: 1, text: '1Y' },
+                    { type: 'year', count: 5, text: '5Y' },
+                    { type: 'all', text: 'MAX' }
+                ],
+                buttonTheme: {
+                    fill: 'none',
+                    stroke: 'none',
+                    'stroke-width': 0,
                     style: {
-                        fontFamily: 'Inter, sans-serif'
+                        color: '#6B7280', 
+                        fontWeight: '500'
                     },
-                    spacingRight: 30
-                },
-                credits: {
-                    enabled: false
-                },
-                rangeSelector: {
-                    selected: 10,
-                    buttons: [
-                        { type: 'month', count: 1, text: '1M' },
-                        { type: 'month', count: 3, text: '3M' },
-                        { type: 'month', count: 6, text: '6M' },
-                        { type: 'ytd', text: 'YTD' },
-                        { type: 'year', count: 1, text: '1Y' },
-                        { type: 'year', count: 5, text: '5Y' },
-                        { type: 'all', text: 'MAX' }
-                    ],
-                    buttonTheme: {
-                        fill: 'none',
-                        stroke: 'none',
-                        'stroke-width': 0,
-                        style: {
-                            color: '#6B7280', 
-                            fontWeight: '500'
+                    states: {
+                        hover: {
+                            fill: '#F9FAFB', 
+                            style: {
+                                color: '#1F2937'
+                            }
                         },
-                        states: {
-                            hover: {
-                                fill: '#F9FAFB', 
-                                style: {
-                                    color: '#1F2937'
-                                }
-                            },
-                            select: {
-                                fill: 'none',
-                                style: {
-                                    color: '#1E3A8A',
-                                    fontWeight: '700',
-                                }
+                        select: {
+                            fill: 'none',
+                            style: {
+                                color: '#1E3A8A',
+                                fontWeight: '700',
                             }
                         }
-                    },
-                    inputStyle: {
-                        backgroundColor: '#F9FAFB',
-                        borderColor: '#D1D5DB',
                     }
                 },
-                title: {
-                    text: ''
-                },
-                xAxis: {
-                    gridLineWidth: 1,
-                    gridLineColor: "#f1f5f9"        
-                },
-                yAxis: [{
-                    labels: {
-                        format: '{value:,.2f}',
-                        align: 'left',
-                        x: 10
-                    },
-                    gridLineColor: "#f1f5f9",
-                    height: '80%',
-                    resize: {
-                        enabled: true
-                    },
-                    plotLines: [{
-                        value: currentPrice,
-                        color: '#047857',
-                        width: 1,
-                        zIndex: 4,
-                        dashStyle: 'dot',
-                        label: {
-                            text: currentPrice.toFixed(2),
-                            align: 'right',
-                            x: 65,
-                            style: { color: 'white' },
-                            formatter: function() {
-                            return '<div style="background-color:#047857; padding: 4px 8px; border-radius: 4px; font-size:12px;">' + this.options.label.text + '</div>';
-                            },
-                            useHTML: true
-                        }
-                    }]
-                }, {
-                    labels: {
-                        align: 'left'
-                    },
-                    top: '80%',
-                    height: '20%',
-                    offset: 0
-                }],
-                tooltip: {
-                    shared: true,
-                    headerFormat: '<span style="font-size: 10px">{point.key:%d,%b,\'%y}</span><br/>',
-                    pointFormat: `<span style="color:{point.color}">\u25CF</span> {series.name}: <b>${selectedCurrency} {point.y:,.2f}</b><br/>`,
-                    valueDecimals: 2
-                },
-                navigator: { 
-                    enabled: false 
-                },
-                stockTools: {
-                    gui: {
-                        enabled: true,
-                        buttons: [
-                            'indicators', 'separator', 'simpleShapes', 'lines', 
-                            'crookedLines', 'measure', 'advanced', 'toggleAnnotations', 
-                            'separator', 'verticalLabels', 'flags', 'separator', 
-                            'zoomChange', 'fullScreen', 'typeChange', 'separator', 
-                            'saveChart'
-                        ],
-                        iconsURL: 'https://code.highcharts.com/12.4.0/gfx/stock-icons/'
-                    }
-                },
-                plotOptions: {
-                    series: {
-                        showInLegend: true,
-                        dataGrouping: {
-                            enabled: false
+                inputStyle: {
+                    backgroundColor: '#F9FAFB',
+                    borderColor: '#D1D5DB',
                 }
-                    }
+            },
+            title: {
+                text: ''
+            },
+            xAxis: {
+                gridLineWidth: 1,
+                gridLineColor: "#f1f5f9"        
+            },
+            yAxis: [{
+                labels: {
+                    format: '{value:,.2f}',
+                    align: 'left',
+                    x: 10
                 },
-                series: [{
-                    type: 'line',
-                    id: 'main-series',
-                    name: `Sugar Price (${selectedCurrency})`,
-                    data: chartData,
-                    color: '#047857',
-                }],
-                responsive: {
-                    rules: [{
-                        condition: {
-                            maxWidth: 800
+                gridLineColor: "#f1f5f9",
+                height: '80%',
+                resize: {
+                    enabled: true
+                },
+                plotLines: [{
+                    value: currentPrice,
+                    color: '#047857', 
+                    width: 1,
+                    zIndex: 4,
+                    dashStyle: 'dot',
+                    label: {
+                        text: currentPrice.toFixed(2),
+                        align: 'right',
+                        x: 65,
+                        style: { color: 'white' },
+                        formatter: function() {
+                        return '<div style="background-color:#047857; padding: 4px 8px; border-radius: 4px; font-size:12px; font-weight:700;">' + this.options.label.text + '</div>';
                         },
-                        chartOptions: {
-                            rangeSelector: {
-                                inputEnabled: false
-                            }
-                        }
-                    }]
+                        useHTML: true
+                    }
+                }]
+            }, {
+                labels: {
+                    align: 'left'
+                },
+                top: '80%',
+                height: '20%',
+                offset: 0
+            }],
+            tooltip: {
+                shared: true,
+                headerFormat: '<span style="font-size: 10px">{point.key:%d,%b,\'%y}</span><br/>',
+                pointFormat: `<span style="color:{point.color}">\u25CF</span> {series.name}: <b>${selectedCurrency} {point.y:,.2f}</b><br/>`,
+                valueDecimals: 2
+            },
+            navigator: { 
+                enabled: false 
+            },
+            stockTools: {
+                gui: {
+                    enabled: true,
+                    iconsURL: 'https://code.highcharts.com/12.4.0/gfx/stock-icons/'
                 }
-            });
-        }
+            },
+            plotOptions: {
+                series: {
+                    showInLegend: true,
+                    dataGrouping: {
+                        enabled: false
+                    },
+                    lineWidth: 2 // Make main price line slightly thicker
+                },
+                // Set default styling for all indicators
+                indicators: {
+                    lineWidth: 1, // Make indicator lines thinner for visual hierarchy
+                }
+            },
+            series: [{
+                type: 'line',
+                id: 'main-series',
+                name: `Sugar Price (${selectedCurrency})`,
+                data: chartData,
+                color: '#047857',
+            }]
+        });
+    }
 
-        updateTimezoneOptions();
-        createChart(timezoneSelect.value);
+    updateTimezoneOptions();
+    createChart(timezoneSelect.value);
 
-        setInterval(updateTimezoneOptions, 60000);
+    setInterval(updateTimezoneOptions, 60000);
 
+    if (timezoneSelect) {
         timezoneSelect.addEventListener('change', function() {
-            if (chart) chart.destroy();
             createChart(this.value);
         });
+    }
 
+    if (currencySelector) {
         currencySelector.addEventListener('change', function() {
-            if (chart) chart.destroy();
             createChart(timezoneSelect.value);
         });
-
-        const dailyChange = {{ daily_change|default:0 }};
-        const dailyChangePercent = {{ daily_change_percent|default:0 }};
-
-        const changeElement = document.getElementById('price-change');
+    }
+    
+    const dailyChange = {{ daily_change|default:0 }};
+    const dailyChangePercent = {{ daily_change_percent|default:0 }};
+    const changeElement = document.getElementById('price-change');
+    
+    if (changeElement) {
         let changeSymbol = '';
         let changeClass = '';
-
         if (dailyChange > 0) {
             changeSymbol = '▲';
             changeClass = 'text-green-600';
@@ -330,12 +335,12 @@
             changeSymbol = '▼';
             changeClass = 'text-red-600';
         } else {
-            changeSymbol = ''; // No symbol for zero change
-            changeClass = 'text-gray-500'; // Black color for zero change
+            changeSymbol = '';
+            changeClass = 'text-gray-500';
         }
-        
         changeElement.textContent = `${changeSymbol} ${Math.abs(dailyChangePercent).toFixed(2)}%`.trim();
         changeElement.className = `text-sm ${changeClass} font-semibold`;
-    });
-    </script>
-    {% endblock %}
+    }
+});
+</script>
+{% endblock %}
