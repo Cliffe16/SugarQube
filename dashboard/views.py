@@ -4,57 +4,52 @@ import json
 from django.db import models
 import time
 from django.contrib.auth.decorators import login_required
-from datetime import datetime, timedelta
-import random
+from datetime import datetime
+from .prediction_models import prepare_data, train_and_predict 
 from django.http import JsonResponse
+
 
 @login_required
 def market_trends(request):
-    prices = SugarPrice.objects.all().order_by('date')
+    # 1. Get historical data using our new function
+    historical_df = prepare_data()
 
-    if not prices.exists():
+    if historical_df.empty:
         # Return empty context if no data
-        context = {
-            'chart_data': json.dumps([]),
-            'latest_price': 0,
-            'exchange_rate': 0,
-            'daily_change': 0,
-            'daily_change_percent': 0,
-            'annual_min': 0,
-            'annual_max': 0,
-            'volume': 0,
-        }
-        return render(request, 'dashboard/market_trends.html', context)
+        return render(request, 'dashboard/market_trends.html', {'chart_data': json.dumps([])})
 
-    # Prepare data for Highcharts Stock (timestamp in milliseconds)
+    # 2. Get predictions from our model
+    predictions_df = train_and_predict(historical_df)
+
+    # 3. Format historical data for Highcharts
     chart_data = []
-    for price in prices:
-        timestamp = int(time.mktime(price.date.timetuple())) * 1000
-        chart_data.append([timestamp, float(price.amount)])
+    for index, row in historical_df.iterrows():
+        timestamp = int(time.mktime(row['Date'].timetuple())) * 1000
+        chart_data.append([timestamp, float(row['Price'])])
+        
+    # 4. Format prediction data for Highcharts
+    prediction_data = []
+    for index, row in predictions_df.iterrows():
+        timestamp = int(time.mktime(row['Date'].timetuple())) * 1000
+        prediction_data.append([timestamp, float(row['Price'])])
 
-    # Key Metrics
+    # 5. Calculate Key Metrics
+    prices = SugarPrice.objects.all().order_by('date')
     latest_price_obj = prices.last()
-    if latest_price_obj and len(prices) > 1:
+    
+    if latest_price_obj and prices.count() > 1:
         latest_price = float(latest_price_obj.amount)
         exchange_rate = float(latest_price_obj.rate)
         
-        # Get previous day's price for daily change calculation
-        previous_price_obj = prices[len(prices)-2] if len(prices) > 1 else latest_price_obj
+        previous_price_obj = prices[prices.count()-2]
         previous_price = float(previous_price_obj.amount)
         
         daily_change = latest_price - previous_price
         daily_change_percent = (daily_change / previous_price) * 100 if previous_price > 0 else 0
         
-        # Calculate annual range
-        annual_range = prices.aggregate(
-            min_price=models.Min('amount'), 
-            max_price=models.Max('amount')
-        )
+        annual_range = prices.aggregate(min_price=models.Min('amount'), max_price=models.Max('amount'))
         annual_min = float(annual_range['min_price']) if annual_range['min_price'] else 0
         annual_max = float(annual_range['max_price']) if annual_range['max_price'] else 0
-        
-        # Simulate trading volume (since we don't have real volume data)
-        volume = random.randint(50000, 200000)
         
     else:
         latest_price = float(latest_price_obj.amount) if latest_price_obj else 0
@@ -63,17 +58,16 @@ def market_trends(request):
         daily_change_percent = 0
         annual_min = latest_price
         annual_max = latest_price
-        volume = 0
 
     context = {
         'chart_data': json.dumps(chart_data),
+        'prediction_data': json.dumps(prediction_data),  # Add prediction data to context
         'latest_price': latest_price,
-        'exchange_rate': exchange_rate,
+        'EXCHANGE_RATE_USD': exchange_rate, # Ensure this matches the template
         'daily_change': daily_change,
         'daily_change_percent': daily_change_percent,
         'annual_min': annual_min,
         'annual_max': annual_max,
-        'volume': volume,
     }
     return render(request, 'dashboard/market_trends.html', context)
 

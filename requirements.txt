@@ -1,3 +1,6 @@
 Django>=5.0
 psycopg2-binary
-django-ckeditor
+django-ckeditor>=5.0.0
+pandas
+scikit-learn
+numpy

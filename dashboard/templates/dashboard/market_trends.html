@@ -66,7 +66,7 @@
                             <span class="text-xs text-gray-600">ANNUAL HIGH:</span>
                             <span class="font-semibold text-gray-900 text-sm text-right" data-kes-price="{{ annual_max }}" id="annual-high">
                                 <span class="currency-symbol">KES</span> <span class="price-figure">{{ annual_max|floatformat:2 }}</span>
-                            </span>                        
+                            </span>
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-xs text-gray-600">ANNUAL LOW:</span>
@@ -120,20 +120,22 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const rawData = {{ chart_data|safe }};
+    const predictionRawData = {{ prediction_data|safe }}; // ADDED: Get prediction data
     const timezoneSelect = document.getElementById('timezone');
     const currencySelector = document.getElementById('currency-selector');
     const exchangeRate = {{ EXCHANGE_RATE_USD|default:1.0 }};
     let chart;
 
-    function getConvertedData(currency) {
-        if (!Array.isArray(rawData)) return [];
+    // MODIFIED: This function now accepts the data array to convert
+    function getConvertedData(data, currency) {
+        if (!Array.isArray(data)) return [];
         if (currency === 'USD' && exchangeRate && exchangeRate !== 0) {
-            return rawData.map(point => [
-                Number(point[0]), 
+            return data.map(point => [
+                Number(point[0]),
                 parseFloat((parseFloat(point[1]) / exchangeRate).toFixed(2))
             ]);
         }
-        return rawData.map(point => [Number(point[0]), parseFloat(point[1])]);
+        return data.map(point => [Number(point[0]), parseFloat(point[1])]);
     }
 
     function updateTimezoneOptions() {
@@ -150,7 +152,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function createChart(timezone) {
         const selectedCurrency = currencySelector ? currencySelector.value : 'KES';
-        const chartData = getConvertedData(selectedCurrency);
+        const chartData = getConvertedData(rawData, selectedCurrency); // Convert historical data
+        const predictionChartData = getConvertedData(predictionRawData, selectedCurrency); // Convert prediction data
 
         if (!chartData || chartData.length === 0) {
             document.getElementById('container').innerHTML =
@@ -160,7 +163,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const currentPrice = chartData[chartData.length - 1][1];
 
-        // Set a professional color palette for indicators
         Highcharts.setOptions({
             time: {
                 timezone: timezone
@@ -199,12 +201,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     stroke: 'none',
                     'stroke-width': 0,
                     style: {
-                        color: '#6B7280', 
+                        color: '#6B7280',
                         fontWeight: '500'
                     },
                     states: {
                         hover: {
-                            fill: '#F9FAFB', 
+                            fill: '#F9FAFB',
                             style: {
                                 color: '#1F2937'
                             }
@@ -228,9 +230,11 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             xAxis: {
                 gridLineWidth: 1,
-                gridLineColor: "#f1f5f9"        
+                gridLineColor: "#f1f5f9"
             },
+            // --- MODIFIED: yAxis configuration ---
             yAxis: [{
+                // Your original Price Axis
                 labels: {
                     format: '{value:,.2f}',
                     align: 'left',
@@ -243,7 +247,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 plotLines: [{
                     value: currentPrice,
-                    color: '#047857', 
+                    color: '#047857',
                     width: 1,
                     zIndex: 4,
                     dashStyle: 'dot',
@@ -258,7 +262,20 @@ document.addEventListener('DOMContentLoaded', function () {
                         useHTML: true
                     }
                 }]
-            }, {
+            }, { // ADDED: New axis for Prediction
+                labels: {
+                    format: '{value:,.2f}',
+                    align: 'right',
+                    x: -10,
+                    style: { color: 'blue' }
+                },
+                title: {
+                    text: 'Predicted Price',
+                    style: { color: 'blue' }
+                },
+                opposite: true,
+                height: '80%'
+            }, { // Your original bottom axis
                 labels: {
                     align: 'left'
                 },
@@ -272,13 +289,31 @@ document.addEventListener('DOMContentLoaded', function () {
                 pointFormat: `<span style="color:{point.color}">\u25CF</span> {series.name}: <b>${selectedCurrency} {point.y:,.2f}</b><br/>`,
                 valueDecimals: 2
             },
-            navigator: { 
-                enabled: false 
+            navigator: {
+                enabled: false
             },
             stockTools: {
                 gui: {
                     enabled: true,
                     iconsURL: 'https://code.highcharts.com/12.4.0/gfx/stock-icons/'
+                }
+            },
+            // ADDED: Exporting block for custom buttons
+            exporting: {
+                buttons: {
+                    customButton: {
+                        text: 'Hide Prediction',
+                        onclick: function () {
+                            const series = this.series[1]; // Prediction is the second series
+                            if (series.visible) {
+                                series.hide();
+                                this.exporting.update({ buttons: { customButton: { text: 'Show Prediction' } } });
+                            } else {
+                                series.show();
+                                this.exporting.update({ buttons: { customButton: { text: 'Hide Prediction' } } });
+                            }
+                        }
+                    }
                 }
             },
             plotOptions: {
@@ -287,19 +322,27 @@ document.addEventListener('DOMContentLoaded', function () {
                     dataGrouping: {
                         enabled: false
                     },
-                    lineWidth: 2 // Make main price line slightly thicker
+                    lineWidth: 2
                 },
-                // Set default styling for all indicators
                 indicators: {
-                    lineWidth: 1, // Make indicator lines thinner for visual hierarchy
+                    lineWidth: 1,
                 }
             },
+            // --- MODIFIED: series configuration ---
             series: [{
+                // Your original price series
                 type: 'line',
                 id: 'main-series',
                 name: `Sugar Price (${selectedCurrency})`,
                 data: chartData,
                 color: '#047857',
+            }, { // ADDED: Prediction series
+                type: 'line',
+                name: 'Prediction',
+                data: predictionChartData,
+                yAxis: 1, // Links to the second y-axis
+                dashStyle: 'Dot',
+                color: 'blue'
             }]
         });
     }
