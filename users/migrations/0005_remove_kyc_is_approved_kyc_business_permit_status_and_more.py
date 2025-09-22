@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0005_remove_kyc_is_approved_kyc_business_permit_status_and_more'),
+        ('users', '0004_remove_customuser_company_details_and_more'),
     ]
 
     operations = [

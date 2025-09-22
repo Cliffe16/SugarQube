@@ -8,13 +8,13 @@ def prepare_data():
     Prepares data for model training.
     """
     # Fetch all sugar price records from the database
-    prices = SugarPrice.objects.all().values('date', 'price')
+    prices = SugarPrice.objects.all().values('date', 'amount')
     
     # Convert the queryset to a pandas DataFrame
     df = pd.DataFrame(list(prices))
     
     # Rename columns
-    df = df.rename(columns={'date': 'Date','price': 'Price'})
+    df = df.rename(columns={'date': 'Date','amount': 'Amount'})
     
     #Sort the data by date
     df = df.sort_values(by='Date')
@@ -34,7 +34,7 @@ def train_and_predict(df):
     # X needs to be 2D array
     X = df_model[['Time']]
     # y is the target variable
-    y = df_model['Price']
+    y = df_model['Amount']
     
     # Train the model
     model = LinearRegression()
@@ -52,7 +52,7 @@ def train_and_predict(df):
     future_dates = pd.to_datetime([last_date + pd.Timedelta(days=i) for i in range(1, 31)])
     
     # Combine future dates and predictions into a DataFrame
-    predictions_df = pd.DataFrame({'Date': future_dates, 'Price': future_predictions})
+    predictions_df = pd.DataFrame({'Date': future_dates, 'Amount': future_predictions})
     
     return predictions_df
     

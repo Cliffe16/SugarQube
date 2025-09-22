@@ -25,13 +25,13 @@ def market_trends(request):
     chart_data = []
     for index, row in historical_df.iterrows():
         timestamp = int(time.mktime(row['Date'].timetuple())) * 1000
-        chart_data.append([timestamp, float(row['Price'])])
+        chart_data.append([timestamp, float(row['Amount'])])
         
     # 4. Format prediction data for Highcharts
     prediction_data = []
     for index, row in predictions_df.iterrows():
         timestamp = int(time.mktime(row['Date'].timetuple())) * 1000
-        prediction_data.append([timestamp, float(row['Price'])])
+        prediction_data.append([timestamp, float(row['Amount'])])
 
     # 5. Calculate Key Metrics
     prices = SugarPrice.objects.all().order_by('date')
