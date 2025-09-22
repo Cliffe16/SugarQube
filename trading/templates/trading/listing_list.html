@@ -7,7 +7,7 @@
     <form method="GET" action="{% url 'listing_list' %}" class="mt-4 sm:mt-0">
         <div class="flex items-center space-x-2">
             <label for="sort" class="text-sm font-medium text-gray-700 flex-shrink-0">Sort by:</label>
-            <select name="sort" id="sort" onchange="this.form.submit()" class="appearance-none bg-transparent border-none text-gray-700 font-medium text-sm focus:outline-none focus:ring-0">
+            <select name="sort" id="sort" onchange="this.form.submit()" class="appearance-none bg-transparent border-none text-gray-800 font-semibold font-medium text-sm focus:outline-none focus:ring-0">
                 <option value="seller__user__company_name" {% if current_sort == 'seller__user__company_name' %}selected{% endif %}>Company (A-Z)</option>
                 <option value="-seller__user__company_name" {% if current_sort == '-seller__user__company_name' %}selected{% endif %}>Company (Z-A)</option>
                 <option value="price_per_bag" {% if current_sort == 'price_per_bag' %}selected{% endif %}>Price (Low to High)</option>
@@ -24,7 +24,7 @@
     {% for listing in listings %}
     <div class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col hover:shadow-xl transition-shadow duration-300">
         <div class="p-6 flex-grow">
-            <h2 class="text-xl font-bold text-indigo-900 mb-2">{{ listing.seller.user.company_name }}</strong></h2>
+            <h2 class="text-2xl font-bold text-indigo-900 mb-2">{{ listing.seller.user.company_name }}</strong></h2>
             <div class="border-t border-gray-200 pt-4 mt-2">
                 <p class="text-sm text-gray-600 mb-1"><strong>Type:</strong> {{ listing.sugar_type }}</p>
                 <p class="text-sm text-gray-600 mb-4"><strong>Origin:</strong> {{ listing.origin }}</p>
