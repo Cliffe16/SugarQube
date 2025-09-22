@@ -3,6 +3,11 @@ from .models import SugarPrice
 from sklearn.linear_model import LinearRegression
 import numpy as np
 
+import pandas as pd
+from .models import SugarPrice
+from sklearn.linear_model import LinearRegression
+import numpy as np
+
 def prepare_data():
     """
     Prepares data for model training.
@@ -28,6 +33,8 @@ def train_and_predict(df):
     # Prepare the data
     # convert the date to numbers(no. of years from the start date)
     df_model = df.copy()
+    # Ensure the 'Date' column is a datetime type before using .dt accessor
+    df_model['Date'] = pd.to_datetime(df_model['Date'])
     df_model['Time'] = (df_model['Date'] - df_model['Date'].min()).dt.days
     
     # Prepare data for scikit-learn
@@ -42,10 +49,13 @@ def train_and_predict(df):
     
     # Make predictions for the next 30 days
     last_time = X.iloc[-1]['Time']
-    future_times = np.array(range(last_time + 1, last_time + 31)).reshape(-1, 1)
+    
+    # --- MODIFIED: Create a DataFrame for prediction to resolve the warning ---
+    future_times_array = np.array(range(last_time + 1, last_time + 31)).reshape(-1, 1)
+    future_times_df = pd.DataFrame(future_times_array, columns=['Time'])
     
     # Get the predictions for these future times
-    future_predictions = model.predict(future_times)
+    future_predictions = model.predict(future_times_df)
     
     # Get the actual future dates
     last_date = df_model['Date'].iloc[-1]
@@ -55,5 +65,3 @@ def train_and_predict(df):
     predictions_df = pd.DataFrame({'Date': future_dates, 'Amount': future_predictions})
     
     return predictions_df
-    
-    
