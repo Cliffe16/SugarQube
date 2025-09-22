@@ -280,13 +280,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 enabled: false 
             },
 
-            Highcharts.setOptions({
-                lang: {
-                    // key name must match the _titleKey you will use below
-                    toggleLRButtonTitle: 'Toggle model prediction'
-                }
-                });
-
             /* ------- STOCK TOOLS GUI + CUSTOM BUTTON (toggle linear regression) ------- */
             stockTools: {
                 gui: {
@@ -304,8 +297,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         toggleLR: {
                             className: 'highcharts-toggle-lr',
                             // reuse existing series-line icon so the button looks consistent
-                            symbol: 'series-line.svg',
-                            _titleKey: 'Prediction'   // <--- use this key
+                            symbol: 'series-line.svg'
                         }
                     }
                 }
