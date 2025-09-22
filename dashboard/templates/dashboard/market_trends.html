@@ -110,6 +110,10 @@
 <script src="https://code.highcharts.com/stock/indicators/cci.js"></script>
 <script src="https://code.highcharts.com/stock/indicators/cmo.js"></script>
 <script src="https://code.highcharts.com/stock/indicators/trix.js"></script>
+
+<!-- ADDED: linear regression indicator module -->
+<script src="https://code.highcharts.com/stock/indicators/linear-regression.js"></script>
+
 <script src="https://code.highcharts.com/stock/modules/annotations.js"></script>
 <script src="https://code.highcharts.com/stock/modules/annotations-advanced.js"></script>
 <script src="https://code.highcharts.com/stock/modules/price-indicator.js"></script>
@@ -121,6 +125,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     const rawData = {{ chart_data|safe }};
     const timezoneSelect = document.getElementById('timezone');
+    const predictionData = {{ prediction_data|default:"[]"|safe }};
     const currencySelector = document.getElementById('currency-selector');
     const exchangeRate = {{ EXCHANGE_RATE_USD|default:1.0 }};
     let chart;
@@ -160,12 +165,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const currentPrice = chartData[chartData.length - 1][1];
 
-        // Set a professional color palette for indicators
         Highcharts.setOptions({
             time: {
                 timezone: timezone
             },
-            colors: ['#2962FF', '#FF6D00', '#9C27B0', '#FBC02D', '#666666']
+            colors: ['#ff0040ff', '#047857', '#038096ff', '#0547fcff']
         });
 
         if (chart) {
@@ -275,23 +279,94 @@ document.addEventListener('DOMContentLoaded', function () {
             navigator: { 
                 enabled: false 
             },
+
+            Highcharts.setOptions({
+                lang: {
+                    // key name must match the _titleKey you will use below
+                    toggleLRButtonTitle: 'Toggle model prediction'
+                }
+                });
+
+            /* ------- STOCK TOOLS GUI + CUSTOM BUTTON (toggle linear regression) ------- */
             stockTools: {
                 gui: {
                     enabled: true,
-                    iconsURL: 'https://code.highcharts.com/12.4.0/gfx/stock-icons/'
+                    iconsURL: 'https://code.highcharts.com/12.4.0/gfx/stock-icons/',
+                    // Put our custom toggle first, then the default groups (keeps familiar UI)
+                    buttons: [
+                      'toggleLR', 'separator', 'indicators', 'separator',
+                      'simpleShapes', 'lines', 'crookedLines', 'measure', 'advanced',
+                      'toggleAnnotations', 'separator', 'verticalLabels', 'flags', 'separator',
+                      'zoomChange', 'fullScreen', 'typeChange', 'separator', 'currentPriceIndicator', 'saveChart'
+                    ],
+                    definitions: {
+                        // Definition for our custom toggle button
+                        toggleLR: {
+                            className: 'highcharts-toggle-lr',
+                            // reuse existing series-line icon so the button looks consistent
+                            symbol: 'series-line.svg',
+                            _titleKey: 'Prediction'   // <--- use this key
+                        }
+                    }
                 }
             },
+
+            // Bindings for the custom button. Name must match the definition name above.
+            
+            navigation: {
+                bindings: {
+                    /* Toggle the model-prediction series on/off */
+                    toggleLR: {
+                        className: 'highcharts-toggle-lr',
+                        init: function (button) {
+                            const chart = this.chart;
+                            const predId = 'prediction-series-1';
+                            const existing = chart.get(predId);
+
+                            // If already present, remove (toggle off)
+                            if (existing) {
+                                existing.remove();
+                                // Ensure button doesn't remain visually active
+                                button.classList.remove('highcharts-active');
+                                return;
+                            }
+
+                            // If no prediction data available, inform and exit
+                            if (!Array.isArray(predictionData) || predictionData.length === 0) {
+                                // small user-visible hint — you may replace with a non-blocking UI toast
+                                alert('No prediction data available.');
+                                button.classList.remove('highcharts-active');
+                                return;
+                            }
+
+                            // Add predictions as their own series (not linked to main series)
+                            chart.addSeries({
+                                id: predId,
+                                name: 'Model Prediction (30d)',
+                                type: 'line',
+                                data: predictionData,
+                                dashStyle: 'ShortDash',
+                                marker: { enabled: false },
+                                // use a distinct color; change if you prefer
+                                color: '#FF8C00',
+                                zIndex: 6,
+                                enableMouseTracking: true
+                            }, false);
+
+                            chart.redraw();
+
+                            // deselect button (Stock Tools expects you to remove active state)
+                            button.classList.remove('highcharts-active');
+                         }
+                        }
+                    }
+                },
             plotOptions: {
                 series: {
                     showInLegend: true,
                     dataGrouping: {
                         enabled: false
-                    },
-                    lineWidth: 2 // Make main price line slightly thicker
-                },
-                // Set default styling for all indicators
-                indicators: {
-                    lineWidth: 1, // Make indicator lines thinner for visual hierarchy
+                    }
                 }
             },
             series: [{
@@ -299,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 id: 'main-series',
                 name: `Sugar Price (${selectedCurrency})`,
                 data: chartData,
-                color: '#047857',
+                color: '#047857', // Retaining requested series color
             }]
         });
     }
