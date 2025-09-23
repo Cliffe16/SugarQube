@@ -26,7 +26,8 @@ urlpatterns = [
     # App URLs
     path('dashboard/', include('dashboard.urls')),
     path('blog/', include('blog.urls')),
-    path('trading/', include('trading.urls')),
+    path('market/', include('market.urls')),
+    path('trading/', include('trading_engine.urls')),
     path('support/', include('support.urls')),
     
     # Authentication URLs

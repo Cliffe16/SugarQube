@@ -1,5 +1,3 @@
-# trading/views.py
-
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -42,7 +40,7 @@ def listing_list(request):
         'listings': listings,
         'current_sort': sort_by
     }
-    return render(request, 'trading/listing_list.html', context)
+    return render(request, 'market/listing_list.html', context)
 
 @login_required
 def listing_detail(request, pk):
@@ -51,7 +49,7 @@ def listing_detail(request, pk):
     """
     listing = get_object_or_404(SugarListing, pk=pk) #get page or 404 error
     form = OrderForm()
-    return render(request, 'trading/listing_detail.html', {'listing': listing, 'form': form})
+    return render(request, 'market/listing_detail.html', {'listing': listing, 'form': form})
 
 @login_required
 @transaction.atomic
@@ -70,7 +68,7 @@ def place_order(request, pk):
         form = OrderForm(request.POST)
         if form.is_valid():
             """
-            Checks based on trading/forms.py
+            Checks based on market/forms.py
             """
             quantity = form.cleaned_data['quantity']
 
@@ -97,7 +95,7 @@ def place_order(request, pk):
         return redirect('listing_detail', pk=pk)
 
     # If form is invalid or has errors, re-render the detail page
-    return render(request, 'trading/listing_detail.html', {'listing': listing, 'form': form})
+    return render(request, 'market/listing_detail.html', {'listing': listing, 'form': form})
 
 @login_required
 def order_history(request):
@@ -127,4 +125,4 @@ def order_history(request):
         'sort_dir': sort_dir,
         'next_sort_dir': next_sort_dir
     }
-    return render(request, 'trading/order_history.html', context)
+    return render(request, 'market/order_history.html', context)

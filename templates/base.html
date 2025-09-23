@@ -21,7 +21,7 @@
                 --gray-light: #F3F4F6;
                 --header-height: 5.5rem; /* h-22 total */
                 --sidebar-width-expanded: 16rem; /* w-64 */
-                --sidebar-width-collapsed: 5.0rem; /* w-18 */
+                --sidebar-width-collapsed: 5.4rem; /* w-18 */
             }
 
             body {
@@ -182,9 +182,13 @@
                     <i data-feather="file-text" class="h-5 w-5 mr-3 flex-shrink-0"></i>
                     <span class="link-text">Blog</span>
                 </a>
-                <a href="{% url 'listing_list' %}" class="sidebar-nav-link {% if 'trading' in request.path %}bg-green-100 text-green-700{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
-                    <i data-feather="bar-chart-2" class="h-5 w-5 mr-3 flex-shrink-0"></i>
-                    <span class="link-text">Trade</span>
+                <a href="{% url 'listing_list' %}" class="sidebar-nav-link {% if 'market' in request.path %}bg-green-100 text-green-700{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+                    <i data-feather="shopping-cart" class="h-5 w-5 mr-3 flex-shrink-0"></i>
+                    <span class="link-text">Market</span>
+                </a>
+                <a href="{% url 'trading_home' %}" class="sidebar-nav-link {% if 'trading' in request.path %}bg-green-100 text-green-700{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+                    <i data-feather="trending-up" class="h-5 w-5 mr-3 flex-shrink-0"></i>
+                    <span class="link-text">Trading</span>
                 </a>
                 <a href="{% url 'support_page' %}" class="sidebar-nav-link {% if 'support' in request.path %}bg-green-100 text-green-700{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
                     <i data-feather="help-circle" class="h-5 w-5 mr-3 flex-shrink-0"></i>

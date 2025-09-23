@@ -33,7 +33,8 @@ INSTALLED_APPS = [
     'users',
     'dashboard',
     'blog',
-    'trading',
+    'market',
+    'trading_engine',
     'support',
 ]
 
