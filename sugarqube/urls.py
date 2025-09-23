@@ -27,7 +27,7 @@ urlpatterns = [
     path('dashboard/', include('dashboard.urls')),
     path('blog/', include('blog.urls')),
     path('trading/', include('trading.urls')),
-    
+    path('support/', include('support.urls')),
     
     # Authentication URLs
     path('register/', user_views.register, name='register'),

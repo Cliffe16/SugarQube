@@ -1,103 +1,86 @@
 {% extends 'base.html' %}
-{% block title %}Settings | SugarQube{% endblock %}
+{% load static %}
+
+{% block title %}User Profile{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto">
-
-    {% if not user.is_verified_buyer %}
-    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-md mb-6 flex justify-between items-center">
-        <div class="flex items-center">
-            <i data-feather="alert-circle" class="h-6 w-6 mr-3"></i>
-            <p><span class="font-bold">Please confirm your identity.</span> Your account is not fully verified.</p>
-        </div>
-        <a href="#verification-steps" class="bg-yellow-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors text-sm">
-            Complete Profile
-        </a>
-    </div>
-    {% endif %}
-
-    <div class="flex flex-col md:flex-row md:space-x-8">
-        <div class="md:w-1/4 flex-shrink-0">
-            <h2 class="text-xl font-bold text-gray-800 mb-4">Settings</h2>
-            <nav class="space-y-1">
-                <a href="#" id="profile-tab-link" class="tab-link bg-green-100 text-green-700 group flex items-center px-3 py-2 text-sm font-medium rounded-md" aria-current="page">
-                    <i data-feather="user" class="mr-3 h-5 w-5"></i>
-                    Profile
-                </a>
-                <a href="#" id="security-tab-link" class="tab-link text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-3 py-2 text-sm font-medium rounded-md">
-                    <i data-feather="lock" class="mr-3 h-5 w-5"></i>
-                    Security
-                </a>
-                <a href="#" id="account-type-tab-link" class="tab-link text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-3 py-2 text-sm font-medium rounded-md">
-                    <i data-feather="briefcase" class="mr-3 h-5 w-5"></i>
-                    Account Type
-                </a>
-            </nav>
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-6 border-b border-gray-200">
+            <h1 class="text-2xl font-bold text-gray-800">Account Settings</h1>
+            <p class="mt-1 text-sm text-gray-600">Manage your profile, security, and account settings.</p>
         </div>
 
-        <div class="md:w-3/4 mt-8 md:mt-0">
-            <div id="profile-tab-content">
-                {% include 'registration/profile_tab.html' %}
+        <div>
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+                    <button id="tab-profile" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-green-600 border-green-500">
+                        Profile
+                    </button>
+                    <button id="tab-security" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                        Security
+                    </button>
+                    <button id="tab-account" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                        Account Type
+                    </button>
+                </nav>
             </div>
-            <div id="security-tab-content" class="hidden">
-                {% include 'registration/security_tab.html' %}
-            </div>
-            <div id="account-type-tab-content" class="hidden">
-                {% include 'registration/account_type_tab.html' %}
+
+            <div class="p-6">
+                <div id="content-profile" class="tab-content">
+                    {% include 'registration/profile_tab.html' %}
+                </div>
+                <div id="content-security" class="tab-content hidden">
+                    {% include 'registration/security_tab.html' %}
+                </div>
+                <div id="content-account" class="tab-content hidden">
+                    {% include 'registration/account_type_tab.html' %}
+                </div>
             </div>
         </div>
     </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const tabs = document.querySelectorAll('.tab-link');
-        const tabContents = {
-            'profile-tab-link': document.getElementById('profile-tab-content'),
-            'security-tab-link': document.getElementById('security-tab-content'),
-            'account-type-tab-link': document.getElementById('account-type-tab-content'),
-        };
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
 
-        let phoneInputInitialized = false;
-
+    function switchTab(tabId) {
         tabs.forEach(tab => {
-            tab.addEventListener('click', (event) => {
-                event.preventDefault();
+            const isSelected = tab.id === `tab-${tabId}`;
+            tab.classList.toggle('text-green-600', isSelected);
+            tab.classList.toggle('border-green-500', isSelected);
+            tab.classList.toggle('text-gray-500', !isSelected);
+            tab.classList.toggle('hover:text-gray-700', !isSelected);
+            tab.classList.toggle('hover:border-gray-300', !isSelected);
+        });
 
-                tabs.forEach(t => {
-                    t.classList.remove('active', 'bg-green-100', 'text-green-700');
-                    t.classList.add('text-gray-600', 'hover:bg-gray-50', 'hover:text-gray-900');
-                });
+        tabContents.forEach(content => {
+            content.classList.toggle('hidden', content.id !== `content-${tabId}`);
+        });
+    }
 
-                tab.classList.add('active', 'bg-green-100', 'text-green-700');
-                tab.classList.remove('text-gray-600', 'hover:bg-gray-50', 'hover:text-gray-900');
-
-                Object.values(tabContents).forEach(content => {
-                    content.classList.add('hidden');
-                });
-
-                const activeContent = tabContents[tab.id];
-                if (activeContent) {
-                    activeContent.classList.remove('hidden');
-
-                    // Initialize the phone input only when the security tab is shown for the first time
-                    if (tab.id === 'security-tab-link' && !phoneInputInitialized) {
-                        const phoneInputField = activeContent.querySelector(".phone-input");
-                        if (phoneInputField) {
-                            window.intlTelInput(phoneInputField, {
-                                initialCountry: "ke",
-                                separateDialCode: true,
-                                utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js",
-                            });
-                            phoneInputInitialized = true;
-                        }
-                    }
-                }
-            });
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const tabId = tab.id.split('-')[1];
+            switchTab(tabId);
+            // Update URL without reloading
+            const url = new URL(window.location);
+            url.searchParams.set('tab', tabId);
+            window.history.pushState({}, '', url);
         });
     });
+
+    // On page load, check for a tab parameter in the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabQuery = urlParams.get('tab');
+
+    if (tabQuery) {
+        switchTab(tabQuery);
+    }
+});
 </script>
 {% endblock %}

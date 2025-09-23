@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-# ... (other imports)
+from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -9,5 +9,6 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     
     # Add support app URLs
-    path('support/', include('support.urls')),
+    path('', views.support_page, name='support_page'),
+    path('submit/', views.submit_ticket, name='submit_ticket'),
 ]
