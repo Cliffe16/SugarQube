@@ -4,7 +4,7 @@ class CredentialsRouter:
     auth, contenttypes, sessions, and admin applications.
     """
     def db_for_read(self, model, **hints):
-        if model._meta.app_label in ('users', 'auth', 'contenttypes', 'sessions', 'admin'):
+        if model._meta.app_label in ('users', 'auth', 'contenttypes', 'sessions', 'admin', 'notifications'):
             return 'credentials'
         return None
 

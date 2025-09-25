@@ -146,3 +146,8 @@ body {
     font-weight: 700;
     color: #212529;
 }
+/* 6. Notification Bell with Badge */
+#notification-widget #notification-count {
+    /* Positions the badge slightly inside the bell icon for a better look */
+    transform: translate(50%, -50%);
+}

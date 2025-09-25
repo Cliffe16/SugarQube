@@ -12,12 +12,16 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='SugarPrice',
+            name='Notification',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField()),
-                ('amount', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('rate', models.DecimalField(decimal_places=2, max_digits=10)),
+                ('message', models.CharField(max_length=255)),
+                ('is_read', models.BooleanField(default=False)),
+                ('timestamp', models.DateTimeField(auto_now_add=True)),
+                ('link', models.URLField(blank=True, null=True)),
             ],
+            options={
+                'ordering': ['-timestamp'],
+            },
         ),
     ]

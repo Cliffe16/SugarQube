@@ -29,6 +29,7 @@ urlpatterns = [
     path('market/', include('market.urls')),
     path('trading/', include('trading_engine.urls')),
     path('support/', include('support.urls')),
+    path('notifications/', include('notifications.urls')), 
     
     # Authentication URLs
     path('register/', user_views.register, name='register'),

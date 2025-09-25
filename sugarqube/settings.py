@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'market',
     'trading_engine',
     'support',
+    'notifications',
 ]
 
 MIDDLEWARE = [

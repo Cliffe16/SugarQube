@@ -3,11 +3,6 @@ from .models import SugarPrice
 from sklearn.linear_model import LinearRegression
 import numpy as np
 
-import pandas as pd
-from .models import SugarPrice
-from sklearn.linear_model import LinearRegression
-import numpy as np
-
 def prepare_data():
     """
     Prepares data for model training.
