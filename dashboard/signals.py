@@ -1,25 +1,27 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import pre_save
 from django.dispatch import receiver
-from django.urls import reverse
 from django.contrib.auth import get_user_model
 from .models import SugarPrice
 from notifications.models import Notification
 
-@receiver(post_save, sender=SugarPrice)
-def price_shift_notification(sender, instance, created, **kwargs):
+@receiver(pre_save, sender=SugarPrice)
+def exchange_rate_shift_notification(sender, instance, **kwargs):
     """
-    Creates a notification for all users when a new SugarPrice is created.
+    Triggers a notification when the 'rate' field is updated.
     """
-    if created:
-        User = get_user_model()
-        all_users = User.objects.all()
-        
-        message = f"Market Update: The price of sugar is now KES {instance.amount} on {instance.date.strftime('%B %d')}."
-        
-        # Create a notification for every user
-        for user in all_users:
-            Notification.objects.create(
-                user=user,
-                message=message,
-                link=reverse('market_trends') # Link to the trends page
-            )
+    if instance.pk:
+        try:
+            original = sender.objects.get(pk=instance.pk)
+            if original.rate != instance.rate:
+                User = get_user_model()
+                all_users = User.objects.all()
+                message = f"Currency Update: The exchange rate has been updated to {instance.rate}."
+
+                notifications_to_create = [
+                    Notification(user=user, message=message) for user in all_users
+                ]
+
+                if notifications_to_create:
+                    Notification.objects.bulk_create(notifications_to_create)
+        except sender.DoesNotExist:
+            pass
