@@ -500,6 +500,7 @@
             feather.replace()
         </script>
 
+        ...
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const bell = document.getElementById('notification-bell');
@@ -543,8 +544,37 @@
                                     item.href = notification.link || '#';
                                     item.dataset.id = notification.id;
                                     item.className = 'block py-3 px-4 text-sm text-gray-700 hover:bg-gray-100';
+                                    
+                                    let message = notification.message;
+                                    
+                                    // *** THE FIX: Dynamically format the currency in the notification ***
+                                    if (message.startsWith('Market Update:')) {
+                                        const parts = message.split(' ');
+                                        const priceIndex = parts.indexOf('now') + 1;
+                                        if (priceIndex > 0 && priceIndex < parts.length) {
+                                            const kesPrice = parseFloat(parts[priceIndex]);
+                                            if (!isNaN(kesPrice)) {
+                                                const selectedCurrency = document.getElementById('currency-selector').value;
+                                                const exchangeRate = {{ EXCHANGE_RATE_USD|default:1.0 }};
+                                                let newPrice;
+                                                let currencySymbol;
+
+                                                if (selectedCurrency === 'USD') {
+                                                    newPrice = (kesPrice / exchangeRate).toFixed(2);
+                                                    currencySymbol = 'USD';
+                                                } else {
+                                                    newPrice = kesPrice.toFixed(2);
+                                                    currencySymbol = 'KES';
+                                                }
+                                                
+                                                parts[priceIndex] = `<strong>${currencySymbol} ${newPrice}</strong>`;
+                                                message = parts.join(' ');
+                                            }
+                                        }
+                                    }
+
                                     item.innerHTML = `
-                                        <p class="font-semibold">${notification.message}</p>
+                                        <p class="font-semibold">${message}</p>
                                         <p class="text-xs text-gray-500 mt-1">${notification.timestamp}</p>
                                     `;
                                     

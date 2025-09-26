@@ -9,7 +9,8 @@ class CredentialsRouter:
         return None
 
     def db_for_write(self, model, **hints):
-        if model._meta.app_label in ('users', 'auth', 'contenttypes', 'sessions', 'admin'):
+        # Add 'notifications' to this list
+        if model._meta.app_label in ('users', 'auth', 'contenttypes', 'sessions', 'admin', 'notifications'):
             return 'credentials'
         return None
 
@@ -18,14 +19,16 @@ class CredentialsRouter:
         Allow relations if a model in the auth or contenttypes apps is
         involved.
         """
+        # Add 'notifications' to this list for consistency
         if (
-            obj1._meta.app_label in ('users', 'auth', 'contenttypes', 'sessions', 'admin') or
-            obj2._meta.app_label in ('users', 'auth', 'contenttypes', 'sessions', 'admin')
+            obj1._meta.app_label in ('users', 'auth', 'contenttypes', 'sessions', 'admin', 'notifications') or
+            obj2._meta.app_label in ('users', 'auth', 'contenttypes', 'sessions', 'admin', 'notifications')
         ):
            return True
         return None
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
-        if app_label in ('users', 'auth', 'contenttypes', 'sessions', 'admin'):
+        # Add 'notifications' to this list
+        if app_label in ('users', 'auth', 'contenttypes', 'sessions', 'admin', 'notifications'):
             return db == 'credentials'
         return None

@@ -24,53 +24,47 @@ def profile(request):
             if kyc_form.is_valid():
                 kyc = kyc_form.save(commit=False)
                 kyc.user = request.user
+                kyc.is_approved = False  # Explicitly set to pending on new upload/update
                 kyc.save()
-                messages.success(request, 'KYC documents uploaded successfully. Please wait for admin approval.')
+                messages.success(request, 'KYC documents uploaded successfully. They are now pending review.')
+                return redirect('profile') # Redirect to refresh the page and show the new status
             else:
                 messages.error(request, 'Please correct the errors in the KYC form.')
-            # To show errors, we'll pass the form back in the context
-            context = { 'kyc_instance': kyc_instance, 'form': kyc_form, 'password_form': CustomPasswordChangeForm(request.user), 'phone_form': ChangePhoneNumberForm() }
-            return render(request, 'registration/profile.html', context)
-
-
+        
         elif form_type == 'password_form':
             password_form = CustomPasswordChangeForm(request.user, request.POST)
             if password_form.is_valid():
                 user = password_form.save()
                 update_session_auth_hash(request, user)  # Important!
                 messages.success(request, 'Your password was successfully updated!')
+                return redirect('profile') # Redirect after successful change
             else:
                 messages.error(request, 'Please correct the password errors.')
-            # To show errors, pass the form back in the context
-            context = { 'kyc_instance': kyc_instance, 'form': KYCForm(instance=kyc_instance), 'password_form': password_form, 'phone_form': ChangePhoneNumberForm() }
-            return render(request, 'registration/profile.html', context)
-
 
         elif form_type == 'phone_form':
             phone_form = ChangePhoneNumberForm(request.POST, instance=request.user)
             if phone_form.is_valid():
                 phone_form.save()
                 messages.success(request, 'Your phone number has been updated.')
+                return redirect('profile') # Redirect after successful change
             else:
                 messages.error(request, 'Please correct the phone number errors.')
-            # To show errors, pass the form back in the context
-            context = { 'kyc_instance': kyc_instance, 'form': KYCForm(instance=kyc_instance), 'password_form': CustomPasswordChangeForm(request.user), 'phone_form': phone_form }
-            return render(request, 'registration/profile.html', context)
         
-        return redirect('profile')
-
-    # GET request handling
-    kyc_form = KYCForm(instance=kyc_instance)
-    password_form = CustomPasswordChangeForm(request.user)
-    phone_form = ChangePhoneNumberForm()
+        # If any form has errors, it will fall through and re-render with the errors
+    
+    else: # GET request
+        kyc_form = KYCForm(instance=kyc_instance)
+        password_form = CustomPasswordChangeForm(request.user)
+        phone_form = ChangePhoneNumberForm()
 
     context = {
         'kyc_instance': kyc_instance,
-        'form': kyc_form,
-        'password_form': password_form,
-        'phone_form': phone_form
+        'form': kyc_form if 'kyc_form' in request.POST else KYCForm(instance=kyc_instance),
+        'password_form': password_form if 'password_form' in request.POST else CustomPasswordChangeForm(request.user),
+        'phone_form': phone_form if 'phone_form' in request.POST else ChangePhoneNumberForm(instance=request.user)
     }
     return render(request, 'registration/profile.html', context)
+
 
 def register(request):
     if request.method == 'POST':

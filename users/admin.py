@@ -7,7 +7,7 @@ class KYCInline(admin.StackedInline):
     model = KYC
     can_delete = False
     verbose_name_plural = 'KYC Documents'
-    extra = 0
+    extra = 0 # No extra forms
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
@@ -31,8 +31,9 @@ class CustomUserAdmin(UserAdmin):
 
 @admin.register(KYC)
 class KYCAdmin(admin.ModelAdmin):
-    list_display = ['user', 'is_approved']
-    list_filter = ['is_approved']
+    list_display = ('user', 'is_approved')
+    list_filter = ('is_approved',)
+    search_fields = ('user__username',) # Enable searching by username
 
 @admin.register(Seller)
 class SellerAdmin(admin.ModelAdmin):

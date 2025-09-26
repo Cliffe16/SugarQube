@@ -60,7 +60,7 @@
                             <p class="text-sm text-gray-500">Upload required business documents for verification.</p>
                         </div>
                     </div>
-                    {% if kyc_instance.is_approved %}
+                    {% if kyc_instance and kyc_instance.is_approved %}
                     <span class="text-sm font-medium text-green-600">Approved</span>
                     {% elif kyc_instance %}
                     <span class="text-sm font-medium text-yellow-600">Pending Review</span>
@@ -72,6 +72,7 @@
                     <p class="text-sm text-gray-600 mb-4">To access the trading features of SugarQube, you need to upload your KYC documents for verification.</p>
                     <form method="post" enctype="multipart/form-data" class="space-y-6">
                         {% csrf_token %}
+                        <input type="hidden" name="form_type" value="kyc_form">
                         {% for field in form %}
                             <div class="space-y-1">
                                 <label for="{{ field.id_for_label }}" class="block text-sm font-semibold text-gray-800">{{ field.label }}</label>
