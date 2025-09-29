@@ -25,10 +25,18 @@
                 </div>
 
                 <div style="position: relative;">
-                    <div class="absolute top-0 left-[350px] z-10 mt-2.5 ml-10">
+                     <div class="absolute top-0 left-0 z-10 p-2 flex items-center space-x-4">
+                        <div>
+                            <label for="forecast-selector" class="text-xs font-medium text-gray-500">Forecast:</label>
+                            <select id="forecast-selector" class="block w-full pl-2 pr-7 py-1 text-xs bg-white border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md">
+                                <option value="7" {% if forecast_days == 7 %}selected{% endif %}>7 Days</option>
+                                <option value="14" {% if forecast_days == 14 %}selected{% endif %}>14 Days</option>
+                                <option value="21" {% if forecast_days == 21 %}selected{% endif %}>21 Days</option>
+                                <option value="30" {% if forecast_days == 30 %}selected{% endif %}>30 Days</option>
+                            </select>
+                        </div>
                         <div class="flex items-center space-x-2">
-                                <span class="border-l border-gray-300 h-6 mx-2"></span>
-                            <label for="timezone" class="text-sm font-medium text-gray-500"></label>
+                            <span class="border-l border-gray-300 h-6"></span>
                             <select id="timezone" class="block w-48 pl-1 pr-1 py-1 text-xs bg-white border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 rounded-md appearance-none">
                                 <option value="Africa/Nairobi" data-label="EAT (Nairobi)" selected>EAT (Nairobi)</option>
                                 <option value="UTC" data-label="UTC">UTC</option>
@@ -90,6 +98,12 @@
             <div class="card p-4">
                 <h4 class="text-sm font-medium text-gray-500 mb-2 text-center">MODEL ACCURACY</h4>
                 <div class="space-y-3">
+                     <div class="flex justify-between items-center">
+                        <span class="text-xs text-gray-600">BEST MODEL:</span>
+                        <span class="font-semibold text-gray-900 text-sm text-right">
+                            {{ accuracy_metrics.best_model }}
+                        </span>
+                    </div>
                     <div class="flex justify-between items-center">
                         <span class="text-xs text-gray-600">MAE:</span>
                         <span class="font-semibold text-gray-900 text-sm text-right">
@@ -100,6 +114,12 @@
                         <span class="text-xs text-gray-600">R-squared:</span>
                         <span class="font-semibold text-gray-900 text-sm text-right">
                             {{ accuracy_metrics.r2|floatformat:2 }}
+                        </span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-gray-600">MAPE:</span>
+                        <span class="font-semibold text-gray-900 text-sm text-right">
+                            {{ accuracy_metrics.mape|floatformat:2 }}%
                         </span>
                     </div>
                 </div>
@@ -125,10 +145,7 @@
 <script src="https://code.highcharts.com/stock/indicators/cci.js"></script>
 <script src="https://code.highcharts.com/stock/indicators/cmo.js"></script>
 <script src="https://code.highcharts.com/stock/indicators/trix.js"></script>
-
-<!-- ADDED: linear regression indicator module -->
 <script src="https://code.highcharts.com/stock/indicators/linear-regression.js"></script>
-
 <script src="https://code.highcharts.com/stock/modules/annotations.js"></script>
 <script src="https://code.highcharts.com/stock/modules/annotations-advanced.js"></script>
 <script src="https://code.highcharts.com/stock/modules/price-indicator.js"></script>
@@ -167,6 +184,17 @@ document.addEventListener('DOMContentLoaded', function () {
             option.text = `${label} (${timeString})`;
         }
     }
+    
+    // *** THE FIX: This is the correct way to set custom tooltips according to Highcharts docs ***
+    Highcharts.setOptions({
+        lang: {
+            navigation: {
+                popup: {
+                    toggleLR: 'Toggle Prediction'
+                }
+            }
+        }
+    });
 
     function createChart(timezone) {
         const selectedCurrency = currencySelector ? currencySelector.value : 'KES';
@@ -179,14 +207,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const currentPrice = chartData[chartData.length - 1][1];
-
-        Highcharts.setOptions({
-            time: {
-                timezone: timezone
-            },
-            colors: ['#ff0040ff', '#047857', '#038096ff', '#0547fcff']
-        });
-
+        
         if (chart) {
             chart.destroy();
         }
@@ -198,6 +219,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     fontFamily: 'Inter, sans-serif'
                 },
                 spacingRight: 30
+            },
+            time: {
+                timezone: timezone
             },
             credits: {
                 enabled: false
@@ -295,12 +319,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 enabled: false 
             },
 
-            /* ------- STOCK TOOLS GUI + CUSTOM BUTTON (toggle linear regression) ------- */
             stockTools: {
                 gui: {
                     enabled: true,
                     iconsURL: 'https://code.highcharts.com/12.4.0/gfx/stock-icons/',
-                    // Put our custom toggle first, then the default groups (keeps familiar UI)
                     buttons: [
                       'toggleLR', 'separator', 'indicators', 'separator',
                       'simpleShapes', 'lines', 'crookedLines', 'measure', 'advanced',
@@ -308,21 +330,16 @@ document.addEventListener('DOMContentLoaded', function () {
                       'zoomChange', 'fullScreen', 'typeChange', 'separator', 'currentPriceIndicator', 'saveChart'
                     ],
                     definitions: {
-                        // Definition for our custom toggle button
                         toggleLR: {
                             className: 'highcharts-toggle-lr',
-                            // reuse existing series-line icon so the button looks consistent
                             symbol: 'series-line.svg'
                         }
                     }
                 }
             },
-
-            // Bindings for the custom button. Name must match the definition name above.
             
             navigation: {
                 bindings: {
-                    /* Toggle the model-prediction series on/off */
                     toggleLR: {
                         className: 'highcharts-toggle-lr',
                         init: function (button) {
@@ -330,39 +347,29 @@ document.addEventListener('DOMContentLoaded', function () {
                             const predId = 'prediction-series-1';
                             const existing = chart.get(predId);
 
-                            // If already present, remove (toggle off)
                             if (existing) {
                                 existing.remove();
-                                // Ensure button doesn't remain visually active
                                 button.classList.remove('highcharts-active');
                                 return;
                             }
-
-                            // If no prediction data available, inform and exit
                             if (!Array.isArray(predictionData) || predictionData.length === 0) {
-                                // small user-visible hint — you may replace with a non-blocking UI toast
                                 alert('No prediction data available.');
                                 button.classList.remove('highcharts-active');
                                 return;
                             }
-
-                            // Add predictions as their own series (not linked to main series)
                             chart.addSeries({
                                 id: predId,
-                                name: 'Model Prediction (30d)',
+                                name: 'Prediction',
                                 type: 'line',
                                 data: predictionData,
                                 dashStyle: 'ShortDash',
                                 marker: { enabled: false },
-                                // use a distinct color; change if you prefer
                                 color: '#FF8C00',
                                 zIndex: 6,
                                 enableMouseTracking: true
                             }, false);
 
                             chart.redraw();
-
-                            // deselect button (Stock Tools expects you to remove active state)
                             button.classList.remove('highcharts-active');
                          }
                         }
@@ -381,8 +388,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 id: 'main-series',
                 name: `Sugar Price (${selectedCurrency})`,
                 data: chartData,
-                color: '#047857', // Retaining requested series color
+                color: '#047857',
             }]
+        });
+    }
+
+    // --- Event listener for the new forecast dropdown ---
+    const forecastSelector = document.getElementById('forecast-selector');
+    if(forecastSelector) {
+        forecastSelector.addEventListener('change', function() {
+            const days = this.value;
+            // Reload the page with the new forecast period as a URL parameter
+            window.location.href = `?forecast_days=${days}`;
         });
     }
 

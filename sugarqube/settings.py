@@ -81,8 +81,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'SugarQubeDB',
         'USER': 'neondb_owner',
-        'PASSWORD': 'npg_e4BMcECL0UTA',
-        'HOST': 'ep-plain-sound-a89ygh1m.eastus2.azure.neon.tech', # Unpooled host
+        'PASSWORD': 'npg_iQS1dGb0rtcL',
+        'HOST': 'ep-icy-salad-a14fbso3.ap-southeast-1.aws.neon.tech', # Unpooled host
         'PORT': '5432',
         'OPTIONS': {
             'sslmode': 'require',
@@ -93,8 +93,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'SugarQubeDB',
         'USER': 'neondb_owner',
-        'PASSWORD': 'npg_e4BMcECL0UTA',
-        'HOST': 'ep-plain-sound-a89ygh1m.eastus2.azure.neon.tech', # Unpooled host
+        'PASSWORD': 'npg_iQS1dGb0rtcL',
+        'HOST': 'ep-icy-salad-a14fbso3.ap-southeast-1.aws.neon.tech', # Unpooled host
         'PORT': '5432',
         'OPTIONS': {
             'sslmode': 'require',
@@ -105,8 +105,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'SugarQubeDB',
         'USER': 'neondb_owner',
-        'PASSWORD': 'npg_e4BMcECL0UTA',
-        'HOST': 'ep-plain-sound-a89ygh1m.eastus2.azure.neon.tech', # Unpooled host
+        'PASSWORD': 'npg_iQS1dGb0rtcL',
+        'HOST': 'ep-icy-salad-a14fbso3.ap-southeast-1.aws.neon.tech', # Unpooled host
         'PORT': '5432',
         'OPTIONS': {
             'sslmode': 'require',

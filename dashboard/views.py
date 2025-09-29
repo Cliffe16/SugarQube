@@ -11,18 +11,26 @@ from django.http import JsonResponse
 
 @login_required
 def market_trends(request):
+    # Get the requested forecast period from the URL, defaulting to 7 days
+    forecast_days = int(request.GET.get('forecast_days', 7))
+    
     historical_df = prepare_data()
 
     if historical_df.empty:
-        return render(request, 'dashboard/market_trends.html', {'chart_data': json.dumps([])})
+        return render(request, 'dashboard/market_trends.html', {
+            'chart_data': json.dumps([]), 
+            'prediction_data': json.dumps([]),
+            'accuracy_metrics': {'mae': 0, 'r2': 0, 'mape': 0, 'best_model': 'N/A'},
+            'forecast_days': forecast_days
+            })
 
-    # Get predictions and now also the accuracy metrics
-    predictions_df, accuracy_metrics = train_and_predict(historical_df)
+    # Pass the forecast_days to your prediction model
+    predictions_df, accuracy_metrics = train_and_predict(historical_df, forecast_days=forecast_days)
 
     # Format historical data for Highcharts
     chart_data = []
     for index, row in historical_df.iterrows():
-        timestamp = int(time.mktime(row['Date'].timetuple())) * 1000
+        timestamp = int(time.mktime(index.timetuple())) * 1000
         chart_data.append([timestamp, float(row['Amount'])])
         
     # Format prediction data for Highcharts
@@ -66,20 +74,13 @@ def market_trends(request):
         'daily_change_percent': daily_change_percent,
         'annual_min': annual_min,
         'annual_max': annual_max,
-        'accuracy_metrics': accuracy_metrics, # Add accuracy metrics to the context
+        'accuracy_metrics': accuracy_metrics,
+        'forecast_days': forecast_days, # Pass the current forecast days to the template
     }
     return render(request, 'dashboard/market_trends.html', context)
 
 def landing_chart_data(request):
-    """
-    Provides sugar price data from the calendar year three years prior to the current year.
-    """
     target_year = datetime.now().year - 5
     prices = SugarPrice.objects.filter(date__year=target_year).order_by('date')
-    
-    chart_data = []
-    for price in prices:
-        timestamp = int(time.mktime(price.date.timetuple())) * 1000
-        chart_data.append([timestamp, float(price.amount)])
-        
+    chart_data = [[int(time.mktime(p.date.timetuple())) * 1000, float(p.amount)] for p in prices]
     return JsonResponse(chart_data, safe=False)
