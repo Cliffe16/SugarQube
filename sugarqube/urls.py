@@ -19,6 +19,8 @@ def root_redirect(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     
+    path('__debug__/', include('debug_toolbar.urls')),
+    
     # Root URL - handles authenticated vs non-authenticated users
     path('', root_redirect, name='home'),
     
@@ -37,8 +39,7 @@ urlpatterns = [
     path('verification/', user_views.kyc_upload, name='verification'),
     path('accounts/', include('users.urls')), 
     path('accounts/', include('django.contrib.auth.urls')),
-        
-    
+          
 ]
 
 # CKEditor URLs

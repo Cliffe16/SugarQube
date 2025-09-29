@@ -4,3 +4,5 @@ django-ckeditor>=5.0.0
 pandas
 scikit-learn
 numpy
+django-debug-toolbar
+pymemcache

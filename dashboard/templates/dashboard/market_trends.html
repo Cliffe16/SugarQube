@@ -455,7 +455,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 applyBtn.textContent = 'Loading...';
 
                                 try {
-                                    const endpoint = new URL('/api/predict/', window.location.origin);
+                                    const endpoint = new URL('dashboard/api/predict/', window.location.origin);
                                     endpoint.searchParams.set('forecast_days', days);
                                     endpoint.searchParams.set('model', selModel);
                                     endpoint.searchParams.set('ci', showCi);

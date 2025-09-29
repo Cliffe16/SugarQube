@@ -7,12 +7,18 @@ from django.contrib.auth.decorators import login_required
 from datetime import datetime
 from .prediction_models import prepare_data, train_and_predict 
 from django.http import JsonResponse
+from django.core.cache import cache
 
 
 @login_required
 def market_trends(request):
     # Get the requested forecast period from the URL, defaulting to 7 days
     forecast_days = int(request.GET.get('forecast_days', 7))
+    
+    cached_data = cache.get(f'market_trends_{forecast_days}')
+    
+    if cached_data:
+        return render(request, 'dashboard/market_trends.html', cached_data)
     
     historical_df = prepare_data()
 
@@ -77,6 +83,9 @@ def market_trends(request):
         'accuracy_metrics': accuracy_metrics,
         'forecast_days': forecast_days, # Pass the current forecast days to the template
     }
+    
+    cache.set(f'market_trends_{forecast_days}', context, 3600)
+    
     return render(request, 'dashboard/market_trends.html', context)
 
 def landing_chart_data(request):
