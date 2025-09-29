@@ -7,6 +7,7 @@ from users import views as user_views
 from dashboard import views as dashboard_views  
 from django.shortcuts import redirect
 
+
 def root_redirect(request):
     """Root URL handler - shows landing page or redirects to dashboard"""
     if request.user.is_authenticated:
@@ -30,7 +31,7 @@ urlpatterns = [
     path('trading/', include('trading_engine.urls')),
     path('support/', include('support.urls')),
     path('notifications/', include('notifications.urls')), 
-    
+
     # Authentication URLs
     path('register/', user_views.register, name='register'),
     path('verification/', user_views.kyc_upload, name='verification'),

@@ -7,6 +7,9 @@ import numpy as np
 from sklearn.metrics import mean_absolute_error, r2_score, mean_absolute_percentage_error
 from sklearn.preprocessing import StandardScaler
 import warnings
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
+from django.views.decorators.csrf import csrf_exempt
 
 warnings.filterwarnings("ignore")
 
@@ -225,7 +228,7 @@ def train_and_predict(df, forecast_days=14):
     
     # Generate future dates
     last_date = df.index[-1]
-    future_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), periods=30, freq='D')
+    future_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), periods=forecast_days, freq='D')
     
     predictions_df = pd.DataFrame({
         'Date': future_dates, 
@@ -240,3 +243,62 @@ def train_and_predict(df, forecast_days=14):
     }
     
     return predictions_df, metrics
+
+@require_GET
+def api_predict(request):
+    """
+    Simple JSON endpoint to return prediction series (and metrics).
+    Query params:
+        forecast_days: int (1-30) default 14
+        model: optional str hint ('auto','arima','ets','ma') - currently passed to train if you implement choices
+        ci: '1' or '0' - whether to also return confidence intervals (currently not calculated by default)
+    Returns:
+        {
+          "prediction": [[ts_ms, value], ...],
+          "metrics": {"mae":..., "r2":..., "mape":..., "best_model": "..."}
+        }
+    """
+    # Parse and validate params
+    try:
+        days = int(request.GET.get('forecast_days', 14))
+    except (ValueError, TypeError):
+        days = 14
+    days = max(1, min(days, 30))
+
+    model_hint = request.GET.get('model', '').lower()
+    # ci flag (not used in current train_and_predict; included so clients can request)
+    ci_flag = request.GET.get('ci', '0') == '1'
+
+    # Build the historical dataframe using existing helper
+    try:
+        df = prepare_data()  # your existing function that returns a DataFrame from DB
+    except Exception as exc:
+        return JsonResponse({'error': 'failed to prepare data', 'detail': str(exc)}, status=500)
+
+    if df is None or df.empty:
+        return JsonResponse({'prediction': [], 'metrics': {}}, status=200)
+
+    # Call core prediction routine. If you later support `model_hint`, adapt train_and_predict signature.
+    try:
+        predictions_df, metrics = train_and_predict(df, forecast_days=days)
+    except Exception as exc:
+        return JsonResponse({'error': 'prediction failed', 'detail': str(exc)}, status=500)
+
+    # Format predictions as [timestamp_ms, value] to match Highcharts
+    try:
+        preds_list = []
+        # predictions_df expected to have 'Date' (datetime-like) and 'Amount'
+        for _, row in predictions_df.iterrows():
+            ts = int(pd.Timestamp(row['Date']).timestamp() * 1000)
+            val = float(row['Amount'])
+            preds_list.append([ts, val])
+    except Exception as exc:
+        return JsonResponse({'error': 'failed to format predictions', 'detail': str(exc)}, status=500)
+
+    return JsonResponse({
+        'prediction': preds_list,
+        'metrics': metrics,
+        'forecast_days': days,
+        'model_hint': model_hint,
+        'ci': ci_flag
+    }, status=200)
