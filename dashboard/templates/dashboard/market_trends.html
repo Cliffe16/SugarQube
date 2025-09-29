@@ -87,10 +87,25 @@
                     </div>
                 </div>
             </div>
+            <div class="card p-4">
+                <h4 class="text-sm font-medium text-gray-500 mb-2 text-center">MODEL ACCURACY</h4>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-gray-600">MAE:</span>
+                        <span class="font-semibold text-gray-900 text-sm text-right">
+                            {{ accuracy_metrics.mae|floatformat:2 }}
+                        </span>                        
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-gray-600">R-squared:</span>
+                        <span class="font-semibold text-gray-900 text-sm text-right">
+                            {{ accuracy_metrics.r2|floatformat:2 }}
+                        </span>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
-
+        
 {% endblock %}
 {% block scripts %}
 <link rel="stylesheet" type="text/css" href="https://code.highcharts.com/css/stocktools/gui.css">

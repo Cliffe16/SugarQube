@@ -2,61 +2,69 @@ import pandas as pd
 from .models import SugarPrice
 from sklearn.linear_model import LinearRegression
 import numpy as np
+# Import necessary metrics from scikit-learn
+from sklearn.metrics import mean_absolute_error, r2_score
 
 def prepare_data():
     """
     Prepares data for model training.
     """
-    # Fetch all sugar price records from the database
     prices = SugarPrice.objects.all().values('date', 'amount')
-    
-    # Convert the queryset to a pandas DataFrame
     df = pd.DataFrame(list(prices))
-    
-    # Rename columns
     df = df.rename(columns={'date': 'Date','amount': 'Amount'})
-    
-    #Sort the data by date
     df = df.sort_values(by='Date')
-    
     return df
 
 def train_and_predict(df):
     """
-    Features a simple linear regression model to predict future sugar prices.
+    Features a simple linear regression model to predict future sugar prices
+    and evaluates its accuracy on a held-out test set.
     """
-    # Prepare the data
-    # convert the date to numbers(no. of years from the start date)
-    df_model = df.copy()
-    # Ensure the 'Date' column is a datetime type before using .dt accessor
-    df_model['Date'] = pd.to_datetime(df_model['Date'])
-    df_model['Time'] = (df_model['Date'] - df_model['Date'].min()).dt.days
-    
+    # --- Model Evaluation ---
+    # Split data into training and testing sets (e.g., last 30 days for testing)
+    train_df = df.iloc[:-30]
+    test_df = df.iloc[-30:]
+
     # Prepare data for scikit-learn
-    # X needs to be 2D array
-    X = df_model[['Time']]
-    # y is the target variable
-    y = df_model['Amount']
+    train_df = train_df.copy()
+    train_df['Time'] = (pd.to_datetime(train_df['Date']) - pd.to_datetime(train_df['Date']).min()).dt.days
+    X_train = train_df[['Time']]
+    y_train = train_df['Amount']
+
+    test_df = test_df.copy()
+    test_df['Time'] = (pd.to_datetime(test_df['Date']) - pd.to_datetime(df['Date']).min()).dt.days
+    X_test = test_df[['Time']]
+    y_test = test_df['Amount']
     
-    # Train the model
+    # Train the model on the training data
     model = LinearRegression()
-    model.fit(X, y)
+    model.fit(X_train, y_train)
+
+    # Make predictions on the test set
+    test_predictions = model.predict(X_test)
+
+    # Calculate accuracy metrics
+    mae = mean_absolute_error(y_test, test_predictions)
+    r2 = r2_score(y_test, test_predictions)
     
-    # Make predictions for the next 30 days
-    last_time = X.iloc[-1]['Time']
+    # --- Future Predictions (using the full dataset) ---
+    df_full = df.copy()
+    df_full['Date'] = pd.to_datetime(df_full['Date'])
+    df_full['Time'] = (df_full['Date'] - df_full['Date'].min()).dt.days
+    X_full = df_full[['Time']]
+    y_full = df_full['Amount']
     
-    # --- MODIFIED: Create a DataFrame for prediction to resolve the warning ---
+    # Retrain the model on the entire dataset for future predictions
+    model.fit(X_full, y_full)
+    
+    last_time = X_full.iloc[-1]['Time']
     future_times_array = np.array(range(last_time + 1, last_time + 31)).reshape(-1, 1)
     future_times_df = pd.DataFrame(future_times_array, columns=['Time'])
-    
-    # Get the predictions for these future times
     future_predictions = model.predict(future_times_df)
     
-    # Get the actual future dates
-    last_date = df_model['Date'].iloc[-1]
+    last_date = df_full['Date'].iloc[-1]
     future_dates = pd.to_datetime([last_date + pd.Timedelta(days=i) for i in range(1, 31)])
-    
-    # Combine future dates and predictions into a DataFrame
     predictions_df = pd.DataFrame({'Date': future_dates, 'Amount': future_predictions})
     
-    return predictions_df
+    # Return both the future predictions and the accuracy metrics
+    return predictions_df, {'mae': mae, 'r2': r2}

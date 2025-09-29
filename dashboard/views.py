@@ -11,29 +11,27 @@ from django.http import JsonResponse
 
 @login_required
 def market_trends(request):
-    # 1. Get historical data using our new function
     historical_df = prepare_data()
 
     if historical_df.empty:
-        # Return empty context if no data
         return render(request, 'dashboard/market_trends.html', {'chart_data': json.dumps([])})
 
-    # 2. Get predictions from our model
-    predictions_df = train_and_predict(historical_df)
+    # Get predictions and now also the accuracy metrics
+    predictions_df, accuracy_metrics = train_and_predict(historical_df)
 
-    # 3. Format historical data for Highcharts
+    # Format historical data for Highcharts
     chart_data = []
     for index, row in historical_df.iterrows():
         timestamp = int(time.mktime(row['Date'].timetuple())) * 1000
         chart_data.append([timestamp, float(row['Amount'])])
         
-    # 4. Format prediction data for Highcharts
+    # Format prediction data for Highcharts
     prediction_data = []
     for index, row in predictions_df.iterrows():
         timestamp = int(time.mktime(row['Date'].timetuple())) * 1000
         prediction_data.append([timestamp, float(row['Amount'])])
 
-    # 5. Calculate Key Metrics
+    # Calculate Key Metrics
     prices = SugarPrice.objects.all().order_by('date')
     latest_price_obj = prices.last()
     
@@ -61,13 +59,14 @@ def market_trends(request):
 
     context = {
         'chart_data': json.dumps(chart_data),
-        'prediction_data': json.dumps(prediction_data),  # Add prediction data to context
+        'prediction_data': json.dumps(prediction_data),
         'latest_price': latest_price,
-        'EXCHANGE_RATE_USD': exchange_rate, # Ensure this matches the template
+        'EXCHANGE_RATE_USD': exchange_rate,
         'daily_change': daily_change,
         'daily_change_percent': daily_change_percent,
         'annual_min': annual_min,
         'annual_max': annual_max,
+        'accuracy_metrics': accuracy_metrics, # Add accuracy metrics to the context
     }
     return render(request, 'dashboard/market_trends.html', context)
 
@@ -75,12 +74,11 @@ def landing_chart_data(request):
     """
     Provides sugar price data from the calendar year three years prior to the current year.
     """
-    target_year = datetime.now().year - 5 # Calculates 2020
+    target_year = datetime.now().year - 5
     prices = SugarPrice.objects.filter(date__year=target_year).order_by('date')
     
     chart_data = []
     for price in prices:
-        # Highcharts requires timestamps in milliseconds
         timestamp = int(time.mktime(price.date.timetuple())) * 1000
         chart_data.append([timestamp, float(price.amount)])
         
