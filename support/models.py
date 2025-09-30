@@ -10,10 +10,10 @@ class SupportTicket(models.Model):
     ]
 
     ticket_id = models.CharField(max_length=10, unique=True, blank=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, db_constraint=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, db_constraint=False, db_index=True)
     subject = models.CharField(max_length=255)
     message = models.TextField()
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Open')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Open', db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):

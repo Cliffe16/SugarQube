@@ -30,13 +30,13 @@ class Order(models.Model):
         ('Delivered', 'Delivered'),
     ]
 
-    buyer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, db_constraint=False) #Buyer is a user
+    buyer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, db_constraint=False, db_index=True) #Buyer is a user
     # Add related_name for easier reverse lookup
     listing = models.ForeignKey(SugarListing, related_name='orders', on_delete=models.CASCADE) #product is ordered
     quantity = models.PositiveIntegerField()
     total_price = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Pending')
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     def __str__(self):
         """

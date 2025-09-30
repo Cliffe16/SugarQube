@@ -24,7 +24,9 @@ def listing_list(request):
         sort_by = 'seller__user__company_name'
 
     # Fetch all listings from the 'sugarprices' database
-    listings = SugarListing.objects.using('sugarprices').filter(quantity_available__gt=0)
+    listings = SugarListing.objects.using('sugarprices').select_related(
+        'seller__user'
+    ).filter(quantity_available__gt=0)
 
     # Fetch the related seller and user data from the 'credentials' database
     for listing in listings:

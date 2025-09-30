@@ -10,12 +10,12 @@ def blog_home(request):
     # Get all tags for the sidebar
     all_tags = Tag.objects.all()
     
-    # --- Filtering Logic ---
+    # Filtering Logic 
     tag_filter = request.GET.get('tag')
     if tag_filter:
         posts = posts.filter(tags__name=tag_filter)
         
-    # --- Sorting Logic ---
+    # Sorting Logic 
     sort_by = request.GET.get('sort', '-created_at') # Default to newest
     valid_sort_fields = ['created_at', '-created_at', 'title', '-title']
     if sort_by not in valid_sort_fields:
