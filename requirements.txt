@@ -5,4 +5,5 @@ pandas
 scikit-learn
 numpy
 django-debug-toolbar
-pymemcache
+pymemcache  
+celery 
