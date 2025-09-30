@@ -293,7 +293,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     label: {
                         enabled: true,
                         formatter: function (value) {
-                            return selectedCurrency + ' ' + value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                            return value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
                         },
                         backgroundColor: '#047857',
                         borderColor: '#047857',
