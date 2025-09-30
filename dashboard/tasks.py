@@ -73,3 +73,81 @@ def update_market_trends(forecast_days):
     cache.set(cache_key, context, 3600)
     
     return context
+
+
+@shared_task
+def prewarm_prediction_cache():
+    """
+    Pre-warm the prediction cache for common forecast periods.
+    This should be run periodically (e.g., every 30 minutes) or after data updates.
+    """
+    from .prediction_models import prepare_data, train_and_predict
+    import pandas as pd
+    
+    try:
+        df = prepare_data()
+        
+        if df.empty or len(df) < 40:
+            return {'status': 'no_data'}
+        
+        # Pre-calculate predictions for common forecast periods
+        forecast_periods = [7, 14, 30]
+        results = {}
+        
+        for days in forecast_periods:
+            try:
+                predictions_df, metrics = train_and_predict(df, forecast_days=days)
+                
+                # Format for API response
+                preds_list = []
+                for _, row in predictions_df.iterrows():
+                    ts = int(pd.Timestamp(row['Date']).timestamp() * 1000)
+                    val = float(row['Amount'])
+                    preds_list.append([ts, val])
+                
+                response_data = {
+                    'prediction': preds_list,
+                    'metrics': metrics,
+                    'forecast_days': days,
+                    'model_hint': 'auto',
+                    'ci': False
+                }
+                
+                # Cache with the same key structure as api_predict
+                cache_key = f'prediction_api_{days}_auto_False'
+                cache.set(cache_key, response_data, 1800)  # 30 minutes
+                
+                results[f'{days}d'] = 'cached'
+                
+            except Exception as e:
+                results[f'{days}d'] = f'error: {str(e)}'
+        
+        return {
+            'status': 'success',
+            'results': results,
+            'timestamp': time.time()
+        }
+        
+    except Exception as e:
+        return {
+            'status': 'error',
+            'error': str(e)
+        }
+
+
+@shared_task
+def update_on_price_change():
+    """
+    Trigger cache updates when new price data is added.
+    Call this after bulk price imports or individual price updates.
+    """
+    # Clear old caches
+    cache.delete('prepared_sugar_data')
+    
+    # Trigger pre-warming
+    prewarm_prediction_cache.delay()
+    
+    # Update market trends for default period
+    update_market_trends.delay(7)
+    
+    return {'status': 'caches_invalidated'}

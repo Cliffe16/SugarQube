@@ -10,13 +10,23 @@ import warnings
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.views.decorators.csrf import csrf_exempt
+from django.core.cache import cache
+import hashlib
+import json
 
 warnings.filterwarnings("ignore")
 
 def prepare_data():
     """
     Prepares data for model training with enhanced cleaning.
+    Uses caching to avoid repeated database queries.
     """
+    cache_key = 'prepared_sugar_data'
+    cached_data = cache.get(cache_key)
+    
+    if cached_data is not None:
+        return pd.read_json(cached_data, orient='split')
+    
     prices = SugarPrice.objects.all().values('date', 'amount')
     df = pd.DataFrame(list(prices))
 
@@ -40,6 +50,9 @@ def prepare_data():
     mean_val = df['Amount'].mean()
     std_val = df['Amount'].std()
     df = df[np.abs(df['Amount'] - mean_val) <= (3 * std_val)]
+    
+    # Cache for 30 minutes
+    cache.set(cache_key, df.to_json(orient='split'), 1800)
     
     return df
 
@@ -95,7 +108,16 @@ def walk_forward_validation(data, order, n_test=30):
 def find_best_model(data, test_size=30):
     """
     Tries multiple approaches and returns the best one based on validation.
+    Caches the result to avoid repeated computation.
     """
+    # Create a cache key based on data characteristics
+    data_hash = hashlib.md5(str(data.values[-100:]).encode()).hexdigest()
+    cache_key = f'best_model_{data_hash}_{test_size}'
+    cached_result = cache.get(cache_key)
+    
+    if cached_result is not None:
+        return cached_result
+    
     if len(data) < test_size + 20:
         return None, None, float('inf')
     
@@ -155,7 +177,12 @@ def find_best_model(data, test_size=30):
         best_config = window
         best_type = 'MA'
     
-    return best_type, best_config, best_mae
+    result = (best_type, best_config, best_mae)
+    
+    # Cache for 1 hour
+    cache.set(cache_key, result, 3600)
+    
+    return result
 
 def train_and_predict(df, forecast_days=14):
     """
@@ -247,16 +274,7 @@ def train_and_predict(df, forecast_days=14):
 @require_GET
 def api_predict(request):
     """
-    Simple JSON endpoint to return prediction series (and metrics).
-    Query params:
-        forecast_days: int (1-30) default 14
-        model: optional str hint ('auto','arima','ets','ma') - currently passed to train if you implement choices
-        ci: '1' or '0' - whether to also return confidence intervals (currently not calculated by default)
-    Returns:
-        {
-          "prediction": [[ts_ms, value], ...],
-          "metrics": {"mae":..., "r2":..., "mape":..., "best_model": "..."}
-        }
+    Optimized JSON endpoint with aggressive caching.
     """
     # Parse and validate params
     try:
@@ -266,19 +284,25 @@ def api_predict(request):
     days = max(1, min(days, 30))
 
     model_hint = request.GET.get('model', '').lower()
-    # ci flag (not used in current train_and_predict; included so clients can request)
     ci_flag = request.GET.get('ci', '0') == '1'
+    
+    # Create cache key based on parameters
+    cache_key = f'prediction_api_{days}_{model_hint}_{ci_flag}'
+    cached_response = cache.get(cache_key)
+    
+    if cached_response is not None:
+        return JsonResponse(cached_response)
 
     # Build the historical dataframe using existing helper
     try:
-        df = prepare_data()  # your existing function that returns a DataFrame from DB
+        df = prepare_data()
     except Exception as exc:
         return JsonResponse({'error': 'failed to prepare data', 'detail': str(exc)}, status=500)
 
     if df is None or df.empty:
         return JsonResponse({'prediction': [], 'metrics': {}}, status=200)
 
-    # Call core prediction routine. If you later support `model_hint`, adapt train_and_predict signature.
+    # Call core prediction routine
     try:
         predictions_df, metrics = train_and_predict(df, forecast_days=days)
     except Exception as exc:
@@ -287,7 +311,6 @@ def api_predict(request):
     # Format predictions as [timestamp_ms, value] to match Highcharts
     try:
         preds_list = []
-        # predictions_df expected to have 'Date' (datetime-like) and 'Amount'
         for _, row in predictions_df.iterrows():
             ts = int(pd.Timestamp(row['Date']).timestamp() * 1000)
             val = float(row['Amount'])
@@ -295,10 +318,15 @@ def api_predict(request):
     except Exception as exc:
         return JsonResponse({'error': 'failed to format predictions', 'detail': str(exc)}, status=500)
 
-    return JsonResponse({
+    response_data = {
         'prediction': preds_list,
         'metrics': metrics,
         'forecast_days': days,
         'model_hint': model_hint,
         'ci': ci_flag
-    }, status=200)
+    }
+    
+    # Cache for 30 minutes (1800 seconds)
+    cache.set(cache_key, response_data, 1800)
+    
+    return JsonResponse(response_data, status=200)
