@@ -10,24 +10,28 @@ from celery.result import AsyncResult
 
 @login_required
 def market_trends(request):
+    """
+    Handles both cached and non-cached requests for market trends.
+    """
     forecast_days = int(request.GET.get('forecast_days', 7))
     cache_key = f'market_trends_{forecast_days}'
-    cached_data = cache.get(cache_key)
+    
+    # Try to get the data from the cache
+    context = cache.get(cache_key)
 
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        # Handle AJAX requests
-        if cached_data:
-            return JsonResponse(cached_data)
-        else:
-            task = update_market_trends.delay(forecast_days)
-            return JsonResponse({'task_id': task.id})
-    else:
-        # Handle regular page loads
-        if cached_data:
-            return render(request, 'dashboard/market_trends.html', cached_data)
-        else:
-            task = update_market_trends.delay(forecast_days)
-            return render(request, 'dashboard/market_trends.html', {'task_id': task.id})
+    # If the data is not in the cache, generate it now
+    if context is None:
+        # Call the task's logic directly (synchronously) to get the data
+        # for the initial page load.
+        context = update_market_trends(forecast_days)
+
+    # If the task returned no data (e.g., empty database), provide an empty context
+    # to prevent the template from breaking.
+    if context is None:
+        context = {}
+
+    # Always render the page with a context that the template can use
+    return render(request, 'dashboard/market_trends.html', context)
 
 def task_status(request, task_id):
     task = AsyncResult(task_id)

@@ -179,11 +179,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // *** THE FIX: Define the custom button title here, outside the chart options ***
     Highcharts.setOptions({
         lang: {
             stockTools: {
-                toggleLR: 'Toggle Prediction' // This key MUST match the button definition name
+                toggleLR: 'Toggle Prediction'
             }
         }
     });
@@ -230,37 +229,33 @@ document.addEventListener('DOMContentLoaded', function () {
                     fill: 'none',
                     stroke: 'none',
                     'stroke-width': 0,
-                    style: {
-                        color: '#6B7280', 
-                        fontWeight: '500'
-                    },
+                    style: { color: '#6B7280', fontWeight: '500' },
                     states: {
-                        hover: {
-                            fill: '#F9FAFB', 
-                            style: {
-                                color: '#1F2937'
-                            }
-                        },
-                        select: {
-                            fill: 'none',
-                            style: {
-                                color: '#1E3A8A',
-                                fontWeight: '700',
-                            }
-                        }
+                        hover: { fill: '#F9FAFB', style: { color: '#1F2937' } },
+                        select: { fill: 'none', style: { color: '#1E3A8A', fontWeight: '700' } }
                     }
                 },
-                inputStyle: {
-                    backgroundColor: '#F9FAFB',
-                    borderColor: '#D1D5DB',
-                }
+                inputStyle: { backgroundColor: '#F9FAFB', borderColor: '#D1D5DB' }
             },
             title: {
                 text: ''
             },
             xAxis: {
                 gridLineWidth: 1,
-                gridLineColor: "#f1f5f9"        
+                gridLineColor: "#f1f5f9",
+                crosshair: {
+                    enabled: true,
+                    snap: true,
+                    dashStyle: 'dot',
+                    color: 'gray',
+                    label: {
+                        enabled: true,
+                        format: '{value:%d %b \'%y}',
+                        backgroundColor: '#047857',
+                        borderColor: '#047857',
+                        style: { color: 'white', fontWeight: 'bold' }
+                    }
+                }
             },
             yAxis: [{
                 labels: {
@@ -275,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 plotLines: [{
                     value: currentPrice,
-                    color: '#047857', 
+                    color: '#047857',
                     width: 1,
                     zIndex: 4,
                     dashStyle: 'dot',
@@ -285,11 +280,26 @@ document.addEventListener('DOMContentLoaded', function () {
                         x: 65,
                         style: { color: 'white' },
                         formatter: function() {
-                        return '<div style="background-color:#047857; padding: 4px 8px; border-radius: 4px; font-size:12px; font-weight:700;">' + this.options.label.text + '</div>';
+                            return '<div style="background-color:#047857; padding: 4px 8px; border-radius: 4px; font-size:12px; font-weight:700;">' + this.options.label.text + '</div>';
                         },
                         useHTML: true
                     }
-                }]
+                }],
+                crosshair: {
+                    enabled: true,
+                    snap: true,
+                    dashStyle: 'dot',
+                    color: 'gray',
+                    label: {
+                        enabled: true,
+                        formatter: function (value) {
+                            return selectedCurrency + ' ' + value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                        },
+                        backgroundColor: '#047857',
+                        borderColor: '#047857',
+                        style: { color: 'white', fontWeight: 'bold' }
+                    }
+                }
             }, {
                 labels: {
                     align: 'left'
@@ -299,15 +309,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 offset: 0
             }],
             tooltip: {
-                shared: false,
-                headerFormat: '<span style="font-size: 10px">{point.key:%d,%b,\'%y}</span><br/>',
-                pointFormat: `<span style="color:{point.color}">\u25CF</span> {series.name}: <b>${selectedCurrency} {point.y:,.2f}</b><br/>`,
-                valueDecimals: 2
+                enabled: false 
             },
             navigator: { 
                 enabled: false 
             },
-
             stockTools: {
                 gui: {
                     enabled: true,
@@ -326,7 +332,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
             },
-                        
             navigation: {
                 bindings: {
                     toggleLR: {
@@ -334,37 +339,23 @@ document.addEventListener('DOMContentLoaded', function () {
                         init: function (button) {
                             const chart = this.chart;
                             const predId = 'prediction-series-1';
-
-                            // If prediction already exists -> remove / toggle off
                             const existing = chart.get(predId);
                             if (existing) {
                                 existing.remove();
                                 button.classList.remove('highcharts-active');
                                 return;
                             }
-
-                            // Add CSS for popup (once)
                             if (!document.getElementById('hc-forecast-popup-style')) {
                                 const style = document.createElement('style');
                                 style.id = 'hc-forecast-popup-style';
                                 style.textContent = `
                                 .highcharts-popup-forecast {
-                                    position: absolute;
-                                    background: #fff;
-                                    border: 1px solid #e6e6e6;
-                                    border-radius: 8px;
-                                    box-shadow: 0 8px 24px rgba(16,24,40,0.08);
-                                    padding: 12px;
-                                    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-                                    z-index: 2000;
-                                    min-width: 240px;
-                                    font-size: 13px;
+                                    position: absolute; background: #fff; border: 1px solid #e6e6e6; border-radius: 8px;
+                                    box-shadow: 0 8px 24px rgba(16,24,40,0.08); padding: 12px; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+                                    z-index: 2000; min-width: 240px; font-size: 13px;
                                 }
                                 .highcharts-popup-forecast label { display:block; margin-bottom:6px; color:#111827; font-weight:600; font-size:13px; }
-                                .highcharts-popup-forecast select,
-                                .highcharts-popup-forecast input[type="number"] {
-                                    width:100%; padding:8px 10px; border-radius:6px; border:1px solid #d1d5db; background:#fff;
-                                }
+                                .highcharts-popup-forecast select, .highcharts-popup-forecast input[type="number"] { width:100%; padding:8px 10px; border-radius:6px; border:1px solid #d1d5db; background:#fff; }
                                 .highcharts-popup-forecast .hc-row { margin-top:8px; }
                                 .highcharts-popup-forecast .hc-forecast-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:10px; }
                                 .highcharts-popup-forecast .hc-forecast-actions button { padding:7px 11px; border-radius:6px; border:1px solid transparent; background:#f3f4f6; cursor:pointer; }
@@ -373,93 +364,49 @@ document.addEventListener('DOMContentLoaded', function () {
                                 `;
                                 document.head.appendChild(style);
                             }
-
-                            // Remove any stale popup
                             const existingPopup = chart.container.parentNode.querySelector('.highcharts-popup-forecast');
                             if (existingPopup) existingPopup.remove();
-
-                            // Build popup UI with extra options
                             const popup = document.createElement('div');
                             popup.className = 'highcharts-popup-forecast';
                             popup.innerHTML = `
                             <label for="hc-forecast-select">Forecast window (days)</label>
-                            <select id="hc-forecast-select" aria-label="Forecast window">
-                                <option value="7">7</option>
-                                <option value="14" selected>14</option>
-                                <option value="30">30</option>
-                            </select>
-
-                            <div class="hc-row">
-                                <label for="hc-model-select">Model (hint)</label>
-                                <select id="hc-model-select" aria-label="Model hint">
-                                <option value="auto" selected>Auto (best model)</option>
-                                <option value="arima">ARIMA</option>
-                                <option value="ets">ETS</option>
-                                <option value="ma">Moving Average</option>
-                                </select>
-                            </div>
-
-                            <div class="hc-row" style="margin-top:8px;">
-                                <label>
-                                <input id="hc-ci-checkbox" class="hc-small-checkbox" type="checkbox" />
-                                Show confidence intervals (if available)
-                                </label>
-                            </div>
-
-                            <div class="hc-forecast-actions">
-                                <button type="button" class="cancel">Cancel</button>
-                                <button type="button" class="apply">Apply</button>
-                            </div>
+                            <select id="hc-forecast-select" aria-label="Forecast window"><option value="7">7</option><option value="14" selected>14</option><option value="30">30</option></select>
+                            <div class="hc-row"><label for="hc-model-select">Model (hint)</label><select id="hc-model-select" aria-label="Model hint"><option value="auto" selected>Auto (best model)</option><option value="arima">ARIMA</option><option value="ets">ETS</option><option value="ma">Moving Average</option></select></div>
+                            <div class="hc-row" style="margin-top:8px;"><label><input id="hc-ci-checkbox" class="hc-small-checkbox" type="checkbox" /> Show confidence intervals (if available)</label></div>
+                            <div class="hc-forecast-actions"><button type="button" class="cancel">Cancel</button><button type="button" class="apply">Apply</button></div>
                             `;
-
-                            // Position popup near the toolbar button
                             try {
                                 const btnRect = button.getBoundingClientRect();
                                 const chartRect = chart.container.getBoundingClientRect();
-
                                 const top = Math.max(6, btnRect.bottom - chartRect.top + 6);
                                 let left = btnRect.left - chartRect.left;
-
                                 const popupWidthEstimate = 260;
                                 if (left + popupWidthEstimate > chartRect.width) {
                                     left = Math.max(6, chartRect.width - popupWidthEstimate - 6);
                                 }
-
                                 popup.style.top = `${top}px`;
                                 popup.style.left = `${left}px`;
-                            } catch (err) {
-                                // fallback: let it flow
-                            }
-
+                            } catch (err) {}
                             chart.container.parentNode.appendChild(popup);
-
                             const removePopup = () => {
                                 popup.remove();
                                 button.classList.remove('highcharts-active');
                                 document.removeEventListener('click', docClickHandler);
                             };
-
                             popup.querySelector('.cancel').addEventListener('click', removePopup);
-
                             popup.querySelector('.apply').addEventListener('click', async function () {
                                 const selDays = popup.querySelector('#hc-forecast-select').value;
                                 const selModel = popup.querySelector('#hc-model-select').value;
                                 const showCi = popup.querySelector('#hc-ci-checkbox').checked ? '1' : '0';
-
-                                // Basic validation
                                 const days = parseInt(selDays, 10) || 14;
-
-                                // Optionally show a small loader or disable apply while fetching
                                 const applyBtn = popup.querySelector('.apply');
                                 applyBtn.disabled = true;
                                 applyBtn.textContent = 'Loading...';
-
                                 try {
                                     const endpoint = new URL('dashboard/api/predict/', window.location.origin);
                                     endpoint.searchParams.set('forecast_days', days);
                                     endpoint.searchParams.set('model', selModel);
                                     endpoint.searchParams.set('ci', showCi);
-
                                     const resp = await fetch(endpoint.toString(), { method: 'GET', credentials: 'same-origin' });
                                     if (!resp.ok) {
                                         const txt = await resp.text();
@@ -468,46 +415,26 @@ document.addEventListener('DOMContentLoaded', function () {
                                         applyBtn.textContent = 'Apply';
                                         return;
                                     }
-
                                     const json = await resp.json();
                                     const pred = json.prediction || [];
-
                                     if (!Array.isArray(pred) || pred.length === 0) {
                                         alert('No prediction returned for the selected window.');
                                         applyBtn.disabled = false;
                                         applyBtn.textContent = 'Apply';
                                         return;
                                     }
-
-                                    // Remove existing prediction series if present
                                     const existingSeries = chart.get(predId);
                                     if (existingSeries) {
                                         existingSeries.remove();
                                     }
-
-                                    // Add the prediction series (dashed) and optionally a confidence area if backend provides it
                                     chart.addSeries({
-                                        id: predId,
-                                        name: 'Prediction (' + json.forecast_days + 'd)',
-                                        type: 'line',
-                                        data: pred,
-                                        dashStyle: 'ShortDash',
-                                        marker: { enabled: false },
-                                        zIndex: 6,
-                                        tooltip: {
-                                            valueDecimals: 2
-                                        }
+                                        id: predId, name: 'Prediction (' + json.forecast_days + 'd)', type: 'line', data: pred,
+                                        dashStyle: 'ShortDash', marker: { enabled: false }, zIndex: 6, tooltip: { valueDecimals: 2 }
                                     }, false);
-
-                                    // If backend returns ci (for example, separate fields lower/upper), draw an area range
-                                    // This expects backend to return 'ci_lower' and 'ci_upper' arrays with same timestamps.
                                     if (json.ci_lower && json.ci_upper && Array.isArray(json.ci_lower) && Array.isArray(json.ci_upper)) {
-                                        // remove previous area if any
                                         const ciId = predId + '-ci';
                                         const prevCI = chart.get(ciId);
                                         if (prevCI) prevCI.remove();
-
-                                        // build area-range series as [ [ts, low, high], ... ]
                                         const ar = [];
                                         for (let i = 0; i < json.ci_lower.length; i++) {
                                             const low = json.ci_lower[i] && json.ci_lower[i][1];
@@ -519,26 +446,15 @@ document.addEventListener('DOMContentLoaded', function () {
                                         }
                                         if (ar.length > 0) {
                                             chart.addSeries({
-                                                id: ciId,
-                                                name: 'Prediction CI',
-                                                type: 'arearange',
-                                                data: ar,
-                                                linkedTo: predId,
-                                                fillOpacity: 0.15,
-                                                zIndex: 5,
-                                                marker: { enabled: false }
+                                                id: ciId, name: 'Prediction CI', type: 'arearange', data: ar,
+                                                linkedTo: predId, fillOpacity: 0.15, zIndex: 5, marker: { enabled: false }
                                             }, false);
                                         }
                                     }
-
                                     chart.redraw();
-
-                                    // Optionally show metrics somewhere (console for now)
                                     if (json.metrics) {
                                         console.info('Prediction metrics:', json.metrics);
                                     }
-
-                                    // close popup
                                     removePopup();
                                 } catch (err) {
                                     console.error('Prediction fetch error', err);
@@ -547,27 +463,35 @@ document.addEventListener('DOMContentLoaded', function () {
                                     applyBtn.textContent = 'Apply';
                                 }
                             });
-
-                            // Close popup when clicking outside
                             const docClickHandler = function (e) {
                                 if (!popup.contains(e.target) && e.target !== button) {
                                     removePopup();
                                 }
                             };
                             setTimeout(() => document.addEventListener('click', docClickHandler), 0);
-
-                            // Deactivate the active style right away (Stock Tools buttons are momentary)
                             button.classList.remove('highcharts-active');
                         }
                     }
                 },
             },
-
             plotOptions: {
                 series: {
                     showInLegend: true,
                     dataGrouping: {
                         enabled: false
+                    },
+                    marker: {
+                        enabled: true,
+                        radius: 0,
+                        states: {
+                            hover: {
+                                enabled: true,
+                                radius: 5,
+                                fillColor: '#ffffff',
+                                lineColor: '#047857',
+                                lineWidth: 2
+                            }
+                        }
                     }
                 }
             },
@@ -580,12 +504,10 @@ document.addEventListener('DOMContentLoaded', function () {
             }]
     })
 };
-    // --- Event listener for the new forecast dropdown ---
     const forecastSelector = document.getElementById('forecast-selector');
     if(forecastSelector) {
         forecastSelector.addEventListener('change', function() {
             const days = this.value;
-            // Reload the page with the new forecast period as a URL parameter
             window.location.href = `?forecast_days=${days}`;
         });
     }

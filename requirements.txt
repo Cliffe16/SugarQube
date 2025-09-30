@@ -7,3 +7,4 @@ numpy
 django-debug-toolbar
 pymemcache  
 celery 
+djangorestframework
