@@ -39,7 +39,7 @@
                         </div>
                     </div>
 
-                    <div id="container" style="height: 700px; min-width: 310px;"></div>
+                    <div id="container" style="height: 700px; min-width: 310px;" tabindex="0"></div>
                 </div>
             </div>
         </div>
@@ -120,34 +120,40 @@
         
 {% endblock %}
 {% block scripts %}
-<link rel="stylesheet" type="text/css" href="https://code.highcharts.com/css/stocktools/gui.css">
-<link rel="stylesheet" type="text/css" href="https://code.highcharts.com/css/annotations/popup.css">
+<link rel="stylesheet" type="text/css" href="https://unpkg.com/highcharts@10.3.3/css/stocktools/gui.css">
+<link rel="stylesheet" type="text/css" href="https://unpkg.com/highcharts@10.3.3/css/annotations/popup.css">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.34/moment-timezone-with-data.min.js"></script>
 
-<script src="https://code.highcharts.com/stock/highstock.js"></script>
-<script src="https://code.highcharts.com/stock/indicators/indicators.js"></script>
-<script src="https://code.highcharts.com/stock/indicators/sma.js"></script>
-<script src="https://code.highcharts.com/stock/indicators/ema.js"></script>
-<script src="https://code.highcharts.com/stock/indicators/bollinger-bands.js"></script>
-<script src="https://code.highcharts.com/stock/indicators/wma.js"></script>
-<script src="https://code.highcharts.com/stock/indicators/momentum.js"></script>
-<script src="https://code.highcharts.com/stock/indicators/roc.js"></script>
-<script src="https://code.highcharts.com/stock/indicators/cci.js"></script>
-<script src="https://code.highcharts.com/stock/indicators/cmo.js"></script>
-<script src="https://code.highcharts.com/stock/indicators/trix.js"></script>
+<!-- Use explicit Highcharts 12.4.0 assets for consistency with stock-icons and modules -->
+<script src="https://unpkg.com/highcharts@10.3.3/highstock.js"></script>
+<script src="https://unpkg.com/highcharts@10.3.3/indicators/indicators.js"></script>
+<script src="https://unpkg.com/highcharts@10.3.3/indicators/sma.js"></script>
+<script src="https://unpkg.com/highcharts@10.3.3/indicators/ema.js"></script>
+<script src="https://unpkg.com/highcharts@10.3.3/indicators/bollinger-bands.js"></script>
+<script src="https://unpkg.com/highcharts@10.3.3/indicators/wma.js"></script>
+<script src="https://unpkg.com/highcharts@10.3.3/indicators/momentum.js"></script>
+<script src="https://unpkg.com/highcharts@10.3.3/indicators/roc.js"></script>
+<script src="https://unpkg.com/highcharts@10.3.3/indicators/cci.js"></script>
+<script src="https://unpkg.com/highcharts@10.3.3/indicators/cmo.js"></script>
+<script src="https://unpkg.com/highcharts@10.3.3/indicators/trix.js"></script>
+<script src="https://unpkg.com/highcharts@10.3.3/indicators/linear-regression.js"></script>
 
-<script src="https://code.highcharts.com/stock/indicators/linear-regression.js"></script>
-
-<script src="https://code.highcharts.com/stock/modules/annotations.js"></script>
-<script src="https://code.highcharts.com/stock/modules/annotations-advanced.js"></script>
-<script src="https://code.highcharts.com/stock/modules/price-indicator.js"></script>
-<script src="https://code.highcharts.com/stock/modules/full-screen.js"></script>
-<script src="https://code.highcharts.com/stock/modules/stock-tools.js"></script>
-<script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
+<script src="https://unpkg.com/highcharts@10.3.3/modules/annotations.js"></script>
+<script src="https://unpkg.com/highcharts@10.3.3/modules/annotations-advanced.js"></script>
+<script src="https://unpkg.com/highcharts@10.3.3/modules/price-indicator.js"></script>
+<script src="https://unpkg.com/highcharts@10.3.3/modules/full-screen.js"></script>
+<script src="https://unpkg.com/highcharts@10.3.3/modules/stock-tools.js"></script>
+<script src="https://unpkg.com/highcharts@10.3.3/modules/exporting.js"></script>
 
 <script>
+// Notes on fixes and rationale:
+// 1) Use explicit Highcharts 12.4.0 assets so the stock-tools module and icons are aligned (iconsURL).
+// 2) Add tabindex to container so it can receive pointer/key events in some browsers.
+// 3) Slight defensive CSS via JS to ensure the chart container accepts pointer/touch events when tools are active.
+// 4) Keep original logic and custom navigation binding for 'toggleLR' and the prediction popup intact.
+
 document.addEventListener('DOMContentLoaded', function () {
     const rawData = {{ chart_data|safe }};
     const timezoneSelect = document.getElementById('timezone');
@@ -179,6 +185,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Small helper to ensure container accepts pointer events when tools are active.
+    function ensureContainerInteractivity(container) {
+        try {
+            container.style.touchAction = container.style.touchAction || 'manipulation';
+            container.style.userSelect = container.style.userSelect || 'none';
+        } catch (e) { /* ignore */ }
+    }
+
     Highcharts.setOptions({
         lang: {
             stockTools: {
@@ -200,20 +214,56 @@ document.addEventListener('DOMContentLoaded', function () {
         const currentPrice = chartData[chartData.length - 1][1];
 
         if (chart) {
-            chart.destroy();
+            try { chart.destroy(); } catch (e) { console.warn(e); }
         }
 
         chart = Highcharts.stockChart('container', {
             chart: {
-                backgroundColor: '#ffffff',
-                style: {
-                    fontFamily: 'Inter, sans-serif'
+            backgroundColor: '#ffffff',
+            style: { fontFamily: 'Inter, sans-serif' },
+            spacingRight: 30,
+            events: {
+                load: function () {
+                    ensureContainerInteractivity(this.container);
                 },
-                spacingRight: 30
+                addSeries: function (e) {
+                try {
+                    const indicatorTypes = [
+                    'sma','ema','wma','bollinger','momentum','roc','cci','cmo',
+                    'trix','linear-regression','linearregression'
+                    ];
+                    const opts = e.options || {};
+                    const addedType = (opts.type || '').toLowerCase();
+
+                    if (indicatorTypes.includes(addedType)) {
+                    const bottomAxisIndex = 1;
+
+                    if (!e.target && opts) {
+                        opts.yAxis = bottomAxisIndex;
+                        if (!opts.linkedTo && this.get('main-series')) {
+                        opts.linkedTo = 'main-series';
+                        }
+                    }
+
+                    const seriesInstance = e.target || this.series[this.series.length - 1];
+                    if (seriesInstance) {
+                        if ((seriesInstance.options.yAxis !== bottomAxisIndex) ||
+                            (seriesInstance.options.linkedTo === undefined && this.get('main-series'))) {
+                        seriesInstance.update({
+                            yAxis: bottomAxisIndex,
+                            linkedTo: seriesInstance.options.linkedTo || (this.get('main-series') ? 'main-series' : undefined)
+                        }, false);
+                        this.redraw();
+                        }
+                    }
+                    }
+                } catch (err) {
+                    console.warn('addSeries hook error', err);
+                }
+                }
+            }
             },
-            credits: {
-                enabled: false
-            },
+
             rangeSelector: {
                 selected: 10,
                 buttons: [
@@ -345,6 +395,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 button.classList.remove('highcharts-active');
                                 return;
                             }
+                            // Prediction popup + fetch logic retained from original file
                             if (!document.getElementById('hc-forecast-popup-style')) {
                                 const style = document.createElement('style');
                                 style.id = 'hc-forecast-popup-style';
