@@ -100,7 +100,7 @@
               </div>
             </div>
         </div>
-        
+
 {% endblock %}
 {% block scripts %}
 <link rel="stylesheet" type="text/css" href="https://unpkg.com/highcharts@10.3.3/css/stocktools/gui.css">
@@ -289,6 +289,32 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    async function updateAccuracyMetrics(model) {
+        try {
+            const endpoint = new URL('dashboard/api/predict/', window.location.origin);
+            endpoint.searchParams.set('model', model);
+            const resp = await fetch(endpoint.toString(), { method: 'GET', credentials: 'same-origin' });
+            if (!resp.ok) {
+                return;
+            }
+            const json = await resp.json();
+            if (json.metrics) {
+                const metrics = json.metrics;
+                const bestModelEl = document.getElementById('metric-best-model');
+                const r2El = document.getElementById('metric-r2');
+                const maeEl = document.getElementById('metric-mae');
+                const mapeEl = document.getElementById('metric-mape');
+
+                if (bestModelEl) bestModelEl.textContent = metrics.best_model || '-';
+                if (r2El) r2El.textContent = metrics.r2 != null ? metrics.r2.toFixed(2) : '-';
+                if (maeEl) maeEl.textContent = metrics.mae != null ? metrics.mae.toFixed(2) : '-';
+                if (mapeEl) mapeEl.textContent = metrics.mape != null ? metrics.mape.toFixed(2) + '%' : '-';
+            }
+        } catch (err) {
+            console.error('Failed to update accuracy metrics', err);
+        }
+    }
+
     function createChart(timezone) {
         const selectedCurrency = currencySelector ? currencySelector.value : 'KES';
         const chartData = getConvertedData(selectedCurrency);
@@ -462,22 +488,22 @@ document.addEventListener('DOMContentLoaded', function () {
                             <div class="hc-row"><label for="hc-model-select">Model (hint)</label><select id="hc-model-select" aria-label="Model hint"><option value="auto" selected>Auto (best model)</option><option value="arima">ARIMA</option><option value="ets">ETS</option><option value="ma">Moving Average</option></select></div>
                             <div class="hc-row" style="margin-top:12px; border-top: 1px solid #e5e7eb; padding-top: 10px;">
                                 <label style="margin-bottom:8px;">Model Accuracy (Backtest)</label>
-                                <div style="font-size:12px; color:#4b5563;">
+                                <div id="accuracy-metrics-container" style="font-size:12px; color:#4b5563;">
                                     <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
                                         <span>Best Model:</span>
-                                        <span style="font-weight:600; color:#111827;">{{ accuracy_metrics.best_model }}</span>
+                                        <span id="metric-best-model" style="font-weight:600; color:#111827;">-</span>
                                     </div>
                                     <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
                                         <span>R-squared:</span>
-                                        <span style="font-weight:600; color:#111827;">{{ accuracy_metrics.r2|floatformat:2 }}</span>
+                                        <span id="metric-r2" style="font-weight:600; color:#111827;">-</span>
                                     </div>
                                     <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
                                         <span>MAE:</span>
-                                        <span style="font-weight:600; color:#111827;">{{ accuracy_metrics.mae|floatformat:2 }}</span>
+                                        <span id="metric-mae" style="font-weight:600; color:#111827;">-</span>
                                     </div>
                                     <div style="display:flex; justify-content:space-between;">
                                         <span>MAPE:</span>
-                                        <span style="font-weight:600; color:#111827;">{{ accuracy_metrics.mape|floatformat:2 }}%</span>
+                                        <span id="metric-mape" style="font-weight:600; color:#111827;">-</span>
                                     </div>
                                 </div>
                             </div>
@@ -497,6 +523,13 @@ document.addEventListener('DOMContentLoaded', function () {
                                 popup.style.left = `${left}px`;
                             } catch (err) {}
                             chart.container.parentNode.appendChild(popup);
+
+                            const modelSelect = popup.querySelector('#hc-model-select');
+                            modelSelect.addEventListener('change', (e) => {
+                                updateAccuracyMetrics(e.target.value);
+                            });
+                            updateAccuracyMetrics(modelSelect.value);
+
                             const removePopup = () => {
                                 popup.remove();
                                 button.classList.remove('highcharts-active');
