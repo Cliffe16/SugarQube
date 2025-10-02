@@ -184,131 +184,186 @@ def find_best_model(data, test_size=30):
     
     return result
 
-def train_and_predict(df, forecast_days=14):
+def train_and_predict(df, forecast_days=14, model_hint='auto'):
     """
-    Main function that orchestrates the prediction process with improved accuracy.
-    
-    Args:
-        df: DataFrame with historical price data
-        forecast_days: Number of days to forecast (default: 14, recommended: 7-14)
+    Main function that orchestrates prediction.
+    Now supports:
+      - model_hint: 'auto' (default), 'arima', 'ets', 'ma' (moving average)
+    Returns:
+      predictions_df, metrics_summary, per_model_metrics_dict
     """
     if df.empty or len(df) < 40:
-        return pd.DataFrame(), {'mae': 0, 'r2': 0, 'mape': 0}
-    
-    # Validate forecast_days
-    forecast_days = max(1, min(forecast_days, 30))  # Cap between 1-30 days
-    
+        empty_metrics = {'mae': 0, 'r2': 0, 'mape': 0, 'best_model': 'Unknown'}
+        return pd.DataFrame(), empty_metrics, {}
+
+    forecast_days = max(1, min(forecast_days, 30))
     data = df['Amount'].copy()
-    
-    # Find the best model using validation
+
+    # Use validation split for internal comparisons
     test_size = min(30, len(data) // 4)
-    best_type, best_config, validation_mae = find_best_model(data, test_size)
-    
-    # Split for final evaluation
-    train_data = data[:-test_size]
-    test_data = data[-test_size:]
-    
-    # Train and predict based on best model
-    if best_type == 'ARIMA':
+    # Get the auto-selected best model config (for ARIMA config fallback)
+    auto_best_type, auto_best_config, _ = find_best_model(data, test_size)
+
+    # Helper functions to compute predictions + metrics for each model
+    def _compute_arima(data_series):
         try:
-            # Use walk-forward for test predictions (more accurate)
-            test_predictions, _ = walk_forward_validation(data, best_config, test_size)
-            
-            # Train on full data for future predictions
-            full_model = ARIMA(data, order=best_config)
+            order = auto_best_config if (isinstance(auto_best_config, tuple) and auto_best_type == 'ARIMA') else (1, 1, 1)
+            # Walk-forward on full series for test portion
+            test_preds, _ = walk_forward_validation(data_series, order, test_size)
+            full_model = ARIMA(data_series, order=order)
             full_fit = full_model.fit()
             future_forecast = full_fit.forecast(steps=forecast_days)
-            
-        except Exception as e:
-            print(f"ARIMA failed: {e}")
-            # Fallback to moving average
+        except Exception:
             window = 7
-            test_predictions = np.array([train_data[-window:].mean()] * test_size)
-            future_forecast = np.array([data[-window:].mean()] * forecast_days)
-    
-    elif best_type == 'ETS':
+            train_data = data_series[:-test_size]
+            test_preds = np.array([train_data[-window:].mean()] * test_size)
+            future_forecast = np.array([data_series[-window:].mean()] * forecast_days)
+        return test_preds, np.array(future_forecast)
+
+    def _compute_ets(data_series):
         try:
+            train_data = data_series[:-test_size]
             model = ExponentialSmoothing(train_data, trend='add', seasonal=None, damped_trend=True)
             fit = model.fit()
-            test_predictions = fit.forecast(steps=test_size)
-            
-            # Retrain on full data
-            full_model = ExponentialSmoothing(data, trend='add', seasonal=None, damped_trend=True)
+            test_preds = fit.forecast(steps=test_size)
+
+            full_model = ExponentialSmoothing(data_series, trend='add', seasonal=None, damped_trend=True)
             full_fit = full_model.fit()
             future_forecast = full_fit.forecast(steps=forecast_days)
-        except:
+        except Exception:
             window = 7
-            test_predictions = np.array([train_data[-window:].mean()] * test_size)
-            future_forecast = np.array([data[-window:].mean()] * forecast_days)
-    
-    else:  # Moving Average baseline
-        window = best_config
-        test_predictions = np.array([train_data[-window:].mean()] * test_size)
-        future_forecast = np.array([data[-window:].mean()] * forecast_days)
-    
-    # Calculate metrics
-    mae = mean_absolute_error(test_data, test_predictions)
-    r2 = r2_score(test_data, test_predictions)
-    
-    # Avoid division by zero in MAPE
-    mape = mean_absolute_percentage_error(test_data, test_predictions) * 100 if test_data.min() > 0 else 0
-    
-    # Generate future dates
+            train_data = data_series[:-test_size]
+            test_preds = np.array([train_data[-window:].mean()] * test_size)
+            future_forecast = np.array([data_series[-window:].mean()] * forecast_days)
+        return np.array(test_preds), np.array(future_forecast)
+
+    def _compute_ma(data_series, window=7):
+        train_data = data_series[:-test_size]
+        test_preds = np.array([train_data[-window:].mean()] * test_size)
+        future_forecast = np.array([data_series[-window:].mean()] * forecast_days)
+        return test_preds, future_forecast
+
+    # Compute per-model preds + metrics
+    per_model_metrics = {}
+
+    # ARIMA
+    arima_test_preds, arima_future = _compute_arima(data)
+    arima_test_actual = data[-test_size:]
+    try:
+        arima_mae = mean_absolute_error(arima_test_actual, arima_test_preds)
+        arima_r2 = r2_score(arima_test_actual, arima_test_preds)
+        arima_mape = mean_absolute_percentage_error(arima_test_actual, arima_test_preds) * 100 if arima_test_actual.min() > 0 else 0
+    except Exception:
+        arima_mae, arima_r2, arima_mape = float('inf'), 0, 0
+
+    per_model_metrics['ARIMA'] = {
+        'mae': round(float(arima_mae), 2) if np.isfinite(arima_mae) else None,
+        'r2': round(float(arima_r2), 4) if np.isfinite(arima_r2) else None,
+        'mape': round(float(arima_mape), 2) if np.isfinite(arima_mape) else None,
+        'forecast': list(map(float, np.array(arima_future).ravel()))
+    }
+
+    # ETS
+    ets_test_preds, ets_future = _compute_ets(data)
+    ets_test_actual = data[-test_size:]
+    try:
+        ets_mae = mean_absolute_error(ets_test_actual, ets_test_preds)
+        ets_r2 = r2_score(ets_test_actual, ets_test_preds)
+        ets_mape = mean_absolute_percentage_error(ets_test_actual, ets_test_preds) * 100 if ets_test_actual.min() > 0 else 0
+    except Exception:
+        ets_mae, ets_r2, ets_mape = float('inf'), 0, 0
+
+    per_model_metrics['ETS'] = {
+        'mae': round(float(ets_mae), 2) if np.isfinite(ets_mae) else None,
+        'r2': round(float(ets_r2), 4) if np.isfinite(ets_r2) else None,
+        'mape': round(float(ets_mape), 2) if np.isfinite(ets_mape) else None,
+        'forecast': list(map(float, np.array(ets_future).ravel()))
+    }
+
+    # Moving Average baseline
+    window = min(7, max(1, len(data) // 20))
+    ma_test_preds, ma_future = _compute_ma(data, window=window)
+    ma_test_actual = data[-test_size:]
+    try:
+        ma_mae = mean_absolute_error(ma_test_actual, ma_test_preds)
+        ma_r2 = r2_score(ma_test_actual, ma_test_preds)
+        ma_mape = mean_absolute_percentage_error(ma_test_actual, ma_test_preds) * 100 if ma_test_actual.min() > 0 else 0
+    except Exception:
+        ma_mae, ma_r2, ma_mape = float('inf'), 0, 0
+
+    per_model_metrics['MA'] = {
+        'mae': round(float(ma_mae), 2) if np.isfinite(ma_mae) else None,
+        'r2': round(float(ma_r2), 4) if np.isfinite(ma_r2) else None,
+        'mape': round(float(ma_mape), 2) if np.isfinite(ma_mape) else None,
+        'forecast': list(map(float, np.array(ma_future).ravel())),
+        'window': int(window)
+    }
+
+    # Decide which model to return for the "prediction" array based on model_hint
+    selected_model_key = (model_hint or 'auto').lower()
+    if selected_model_key in ('arima', 'ets', 'ma'):
+        chosen_key = selected_model_key.upper()
+    else:
+        # fallback to the best by MAE
+        best = min(per_model_metrics.items(), key=lambda kv: (kv[1]['mae'] if kv[1]['mae'] is not None else float('inf')))
+        chosen_key = best[0]
+
+    # Build predictions_df using the chosen model's forecast
+    chosen_forecast = per_model_metrics[chosen_key]['forecast']
     last_date = df.index[-1]
     future_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), periods=forecast_days, freq='D')
-    
+
     predictions_df = pd.DataFrame({
-        'Date': future_dates, 
-        'Amount': future_forecast
+        'Date': future_dates,
+        'Amount': chosen_forecast
     })
-    
-    metrics = {
-        'mae': round(mae, 2),
-        'r2': round(r2, 4),
-        'mape': round(mape, 2),
-        'best_model': f"{best_type} {best_config}" if best_type else "Unknown"
+
+    # Build summary metrics (the "best" model string and values)
+    summary = {
+        'mae': per_model_metrics[chosen_key]['mae'],
+        'r2': per_model_metrics[chosen_key]['r2'],
+        'mape': per_model_metrics[chosen_key]['mape'],
+        'best_model': f"{chosen_key}"
     }
-    
-    return predictions_df, metrics
+
+    return predictions_df, summary, per_model_metrics
+
 
 @require_GET
 def api_predict(request):
     """
     Optimized JSON endpoint with aggressive caching.
+    Now:
+      - Accepts model hint and returns per-model metrics as 'all_metrics'.
     """
-    # Parse and validate params
     try:
         days = int(request.GET.get('forecast_days', 14))
     except (ValueError, TypeError):
         days = 14
     days = max(1, min(days, 30))
 
-    model_hint = request.GET.get('model', '').lower()
+    model_hint = (request.GET.get('model', '') or 'auto').lower()
     ci_flag = request.GET.get('ci', '0') == '1'
-    
-    # Create cache key based on parameters
+
     cache_key = f'prediction_api_{days}_{model_hint}_{ci_flag}'
     cached_response = cache.get(cache_key)
-    
     if cached_response is not None:
         return JsonResponse(cached_response)
 
-    # Build the historical dataframe using existing helper
     try:
         df = prepare_data()
     except Exception as exc:
         return JsonResponse({'error': 'failed to prepare data', 'detail': str(exc)}, status=500)
 
     if df is None or df.empty:
-        return JsonResponse({'prediction': [], 'metrics': {}}, status=200)
+        return JsonResponse({'prediction': [], 'metrics': {}, 'all_metrics': {}}, status=200)
 
-    # Call core prediction routine
     try:
-        predictions_df, metrics = train_and_predict(df, forecast_days=days)
+        predictions_df, metrics_summary, all_metrics = train_and_predict(df, forecast_days=days, model_hint=model_hint)
     except Exception as exc:
         return JsonResponse({'error': 'prediction failed', 'detail': str(exc)}, status=500)
 
-    # Format predictions as [timestamp_ms, value] to match Highcharts
+    # Format predictions for Highcharts: [timestamp_ms, value]
     try:
         preds_list = []
         for _, row in predictions_df.iterrows():
@@ -320,13 +375,13 @@ def api_predict(request):
 
     response_data = {
         'prediction': preds_list,
-        'metrics': metrics,
+        'metrics': metrics_summary,
+        'all_metrics': all_metrics,
         'forecast_days': days,
         'model_hint': model_hint,
         'ci': ci_flag
     }
-    
-    # Cache for 30 minutes (1800 seconds)
+
     cache.set(cache_key, response_data, 1800)
-    
     return JsonResponse(response_data, status=200)
+

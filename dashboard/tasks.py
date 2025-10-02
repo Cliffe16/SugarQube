@@ -16,7 +16,10 @@ def update_market_trends(forecast_days):
     if historical_df.empty:
         return None
 
-    predictions_df, accuracy_metrics = train_and_predict(historical_df, forecast_days=forecast_days)
+    predictions_df, accuracy_metrics, per_model_metrics = train_and_predict(
+    historical_df,
+    forecast_days=forecast_days
+)
 
     # Format data for Highcharts
     chart_data = []

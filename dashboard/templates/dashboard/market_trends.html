@@ -66,7 +66,7 @@
                             <span class="text-xs text-gray-600">ANNUAL HIGH:</span>
                             <span class="font-semibold text-gray-900 text-sm text-right" data-kes-price="{{ annual_max }}" id="annual-high">
                                 <span class="currency-symbol">KES</span> <span class="price-figure">{{ annual_max|floatformat:2 }}</span>
-                            </span>                        
+                            </span>
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-xs text-gray-600">ANNUAL LOW:</span>
@@ -87,34 +87,17 @@
                     </div>
                 </div>
             </div>
-            <div class="card p-4 text-center">
-                <h4 class="text-sm text-gray-500 mb-1">MODEL ACCURACY</h4>
-                <div class="space-y-3">
-                     <div class="flex justify-between items-center">
-                        <span class="text-xs text-gray-600">BEST MODEL:</span>
-                        <span class="font-semibold text-gray-900 text-sm text-right">
-                            {{ accuracy_metrics.best_model }}
-                        </span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-xs text-gray-600">MAE:</span>
-                        <span class="font-semibold text-gray-900 text-sm text-right">
-                            {{ accuracy_metrics.mae|floatformat:2 }}
-                        </span>                        
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-xs text-gray-600">R-squared:</span>
-                        <span class="font-semibold text-gray-900 text-sm text-right">
-                            {{ accuracy_metrics.r2|floatformat:2 }}
-                        </span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-xs text-gray-600">MAPE:</span>
-                        <span class="font-semibold text-gray-900 text-sm text-right">
-                            {{ accuracy_metrics.mape|floatformat:2 }}%
-                        </span>
-                    </div>
-                </div>
+            <div class="card p-4 text-center" id="indicators-card">
+              <div class="text-sm text-gray-500 mb-1">LATEST INDICATORS</div>
+              <div class="space-y-3" id="indicators-content">
+                <div class="flex justify-between items-center"><span class="text-xs text-gray-600">RSI (14):</span><span class="font-semibold text-gray-900 text-sm" id="rsi14">—</span></div>
+                <div class="flex justify-between items-center"><span class="text-xs text-gray-600">EMA (30):</span><span class="font-semibold text-gray-900 text-sm" id="ema30">—</span></div>
+                <div class="flex justify-between items-center"><span class="text-xs text-gray-600">Bollinger Upper (20,2):</span><span class="font-semibold text-gray-900 text-sm" id="bb-upper">—</span></div>
+                <div class="flex justify-between items-center"><span class="text-xs text-gray-600">Bollinger Lower (20,2):</span><span class="font-semibold text-gray-900 text-sm" id="bb-lower">—</span></div>
+                <div class="flex justify-between items-center"><span class="text-xs text-gray-600">ROC (12):</span><span class="font-semibold text-gray-900 text-sm" id="roc12">—</span></div>
+                <div class="flex justify-between items-center"><span class="text-xs text-gray-600">CCI (20):</span><span class="font-semibold text-gray-900 text-sm" id="cci20">—</span></div>
+                <div class="flex justify-between items-center"><span class="text-xs text-gray-600">Momentum (10):</span><span class="font-semibold text-gray-900 text-sm" id="mom10">—</span></div>
+              </div>
             </div>
         </div>
         
@@ -126,7 +109,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.34/moment-timezone-with-data.min.js"></script>
 
-<!-- Use explicit Highcharts 12.4.0 assets for consistency with stock-icons and modules -->
 <script src="https://unpkg.com/highcharts@10.3.3/highstock.js"></script>
 <script src="https://unpkg.com/highcharts@10.3.3/indicators/indicators.js"></script>
 <script src="https://unpkg.com/highcharts@10.3.3/indicators/sma.js"></script>
@@ -148,11 +130,118 @@
 <script src="https://unpkg.com/highcharts@10.3.3/modules/exporting.js"></script>
 
 <script>
-// Notes on fixes and rationale:
-// 1) Use explicit Highcharts 12.4.0 assets so the stock-tools module and icons are aligned (iconsURL).
-// 2) Add tabindex to container so it can receive pointer/key events in some browsers.
-// 3) Slight defensive CSS via JS to ensure the chart container accepts pointer/touch events when tools are active.
-// 4) Keep original logic and custom navigation binding for 'toggleLR' and the prediction popup intact.
+// --- indicator utilities -------------------------------------------------
+function extractPricesAsNumbers(data) {
+    if (!Array.isArray(data)) return [];
+    return data.map(p => parseFloat(p[1]));
+}
+
+// returns ema series (same length as input, first entries may be null until seed)
+function emaSeries(arr, period) {
+    const n = arr.length;
+    if (n === 0 || n < period) return [];
+    const k = 2 / (period + 1);
+    const out = new Array(n).fill(null);
+    // seed at index (period-1) with SMA of first period
+    let seedSum = 0;
+    for (let i = 0; i < period; i++) seedSum += arr[i];
+    out[period - 1] = seedSum / period;
+    for (let i = period; i < n; i++) {
+        out[i] = arr[i] * k + out[i - 1] * (1 - k);
+    }
+    return out;
+}
+
+// RSI using Wilder smoothing (returns last RSI value)
+function computeRSI(arr, period = 14) {
+    if (!Array.isArray(arr) || arr.length < period + 1) return null;
+    const deltas = new Array(arr.length - 1);
+    for (let i = 1; i < arr.length; i++) deltas[i - 1] = arr[i] - arr[i - 1];
+
+    let gain = 0, loss = 0;
+    for (let i = 0; i < period; i++) {
+        const d = deltas[i];
+        if (d > 0) gain += d; else loss += Math.abs(d);
+    }
+    let avgGain = gain / period;
+    let avgLoss = loss / period;
+
+    for (let i = period; i < deltas.length; i++) {
+        const d = deltas[i];
+        let g = d > 0 ? d : 0;
+        let l = d < 0 ? Math.abs(d) : 0;
+        avgGain = (avgGain * (period - 1) + g) / period;
+        avgLoss = (avgLoss * (period - 1) + l) / period;
+    }
+    if (avgLoss === 0) return 100;
+    const rs = avgGain / avgLoss;
+    const rsi = 100 - (100 / (1 + rs));
+    return rsi;
+}
+
+// Bollinger Bands (last values) - simple: period and k (e.g. 20,2)
+function bollingerBands(arr, period = 20, k = 2) {
+    if (!Array.isArray(arr) || arr.length < period) return { upper: null, lower: null, mid: null };
+    const slice = arr.slice(arr.length - period);
+    const mean = slice.reduce((a, b) => a + b, 0) / period;
+    const variance = slice.reduce((s, v) => s + Math.pow(v - mean, 2), 0) / period;
+    const std = Math.sqrt(variance);
+    return { upper: mean + k * std, lower: mean - k * std, mid: mean };
+}
+
+// Rate of Change (percentage) - ROC(n)
+function roc(arr, period = 12) {
+    const n = arr.length;
+    if (n <= period) return null;
+    const prev = arr[n - 1 - period];
+    if (!prev || prev === 0) return null;
+    return ((arr[n - 1] - prev) / prev) * 100;
+}
+
+// Momentum = difference between current and n periods ago
+function momentum(arr, period = 10) {
+    const n = arr.length;
+    if (n <= period) return null;
+    return arr[n - 1] - arr[n - 1 - period];
+}
+
+// Commodity Channel Index (CCI) using close as typical price approximation
+function cci(arr, period = 20) {
+    const n = arr.length;
+    if (n < period) return null;
+    const slice = arr.slice(n - period);
+    const sma = slice.reduce((a, b) => a + b, 0) / period;
+    const meanDev = slice.reduce((s, v) => s + Math.abs(v - sma), 0) / period;
+    if (meanDev === 0) return null;
+    const tp = arr[n - 1];
+    return (tp - sma) / (0.015 * meanDev);
+}
+
+// --- populateIndicatorCard (main) --------------------------------------
+function populateIndicatorCard(data) {
+    try {
+        const prices = extractPricesAsNumbers(data);
+        const rsi14 = computeRSI(prices, 14);
+        const ema30Series = emaSeries(prices, 30);
+        const ema30 = ema30Series.length ? ema30Series[ema30Series.length - 1] : null;
+        const bb = bollingerBands(prices, 20, 2);
+        const roc12 = roc(prices, 12);
+        const cci20 = cci(prices, 20);
+        const mom10 = momentum(prices, 10);
+
+        const fmt = (v, digits=2) => (v == null || Number.isNaN(v)) ? '—' : Number(v).toFixed(digits);
+
+        document.getElementById('rsi14').textContent = rsi14 != null ? fmt(rsi14, 2) : '—';
+        document.getElementById('ema30').textContent = ema30 != null ? fmt(ema30, 2) : '—';
+        document.getElementById('bb-upper').textContent = bb.upper != null ? fmt(bb.upper, 2) : '—';
+        document.getElementById('bb-lower').textContent = bb.lower != null ? fmt(bb.lower, 2) : '—';
+        document.getElementById('roc12').textContent = roc12 != null ? fmt(roc12, 2) + '%' : '—';
+        document.getElementById('cci20').textContent = cci20 != null ? fmt(cci20, 2) : '—';
+        document.getElementById('mom10').textContent = mom10 != null ? fmt(mom10, 2) : '—';
+    } catch (err) {
+        console.warn('Failed to populate indicators', err);
+    }
+}
 
 document.addEventListener('DOMContentLoaded', function () {
     const rawData = {{ chart_data|safe }};
@@ -185,7 +274,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Small helper to ensure container accepts pointer events when tools are active.
     function ensureContainerInteractivity(container) {
         try {
             container.style.touchAction = container.style.touchAction || 'manipulation';
@@ -210,6 +298,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 '<div class="flex items-center justify-center h-full text-gray-500"><p>No data available</p></div>';
             return;
         }
+        
+        populateIndicatorCard(chartData);
 
         const currentPrice = chartData[chartData.length - 1][1];
 
@@ -225,41 +315,6 @@ document.addEventListener('DOMContentLoaded', function () {
             events: {
                 load: function () {
                     ensureContainerInteractivity(this.container);
-                },
-                addSeries: function (e) {
-                try {
-                    const indicatorTypes = [
-                    'sma','ema','wma','bollinger','momentum','roc','cci','cmo',
-                    'trix','linear-regression','linearregression'
-                    ];
-                    const opts = e.options || {};
-                    const addedType = (opts.type || '').toLowerCase();
-
-                    if (indicatorTypes.includes(addedType)) {
-                    const bottomAxisIndex = 1;
-
-                    if (!e.target && opts) {
-                        opts.yAxis = bottomAxisIndex;
-                        if (!opts.linkedTo && this.get('main-series')) {
-                        opts.linkedTo = 'main-series';
-                        }
-                    }
-
-                    const seriesInstance = e.target || this.series[this.series.length - 1];
-                    if (seriesInstance) {
-                        if ((seriesInstance.options.yAxis !== bottomAxisIndex) ||
-                            (seriesInstance.options.linkedTo === undefined && this.get('main-series'))) {
-                        seriesInstance.update({
-                            yAxis: bottomAxisIndex,
-                            linkedTo: seriesInstance.options.linkedTo || (this.get('main-series') ? 'main-series' : undefined)
-                        }, false);
-                        this.redraw();
-                        }
-                    }
-                    }
-                } catch (err) {
-                    console.warn('addSeries hook error', err);
-                }
                 }
             }
             },
@@ -318,23 +373,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 resize: {
                     enabled: true
                 },
-                plotLines: [{
-                    value: currentPrice,
-                    color: '#047857',
-                    width: 1,
-                    zIndex: 4,
-                    dashStyle: 'dot',
-                    label: {
-                        text: currentPrice.toFixed(2),
-                        align: 'right',
-                        x: 65,
-                        style: { color: 'white' },
-                        formatter: function() {
-                            return '<div style="background-color:#047857; padding: 4px 8px; border-radius: 4px; font-size:12px; font-weight:700;">' + this.options.label.text + '</div>';
-                        },
-                        useHTML: true
-                    }
-                }],
                 crosshair: {
                     enabled: true,
                     snap: true,
@@ -367,7 +405,7 @@ document.addEventListener('DOMContentLoaded', function () {
             stockTools: {
                 gui: {
                     enabled: true,
-                    iconsURL: 'https://code.highcharts.com/12.4.0/gfx/stock-icons/',
+                    iconsURL: 'https://code.highcharts.com/10.3.3/gfx/stock-icons/',
                     buttons: [
                       'toggleLR', 'separator', 'indicators', 'separator',
                       'simpleShapes', 'lines', 'crookedLines', 'measure', 'advanced',
@@ -395,7 +433,6 @@ document.addEventListener('DOMContentLoaded', function () {
                                 button.classList.remove('highcharts-active');
                                 return;
                             }
-                            // Prediction popup + fetch logic retained from original file
                             if (!document.getElementById('hc-forecast-popup-style')) {
                                 const style = document.createElement('style');
                                 style.id = 'hc-forecast-popup-style';
@@ -423,6 +460,27 @@ document.addEventListener('DOMContentLoaded', function () {
                             <label for="hc-forecast-select">Forecast window (days)</label>
                             <select id="hc-forecast-select" aria-label="Forecast window"><option value="7">7</option><option value="14" selected>14</option><option value="30">30</option></select>
                             <div class="hc-row"><label for="hc-model-select">Model (hint)</label><select id="hc-model-select" aria-label="Model hint"><option value="auto" selected>Auto (best model)</option><option value="arima">ARIMA</option><option value="ets">ETS</option><option value="ma">Moving Average</option></select></div>
+                            <div class="hc-row" style="margin-top:12px; border-top: 1px solid #e5e7eb; padding-top: 10px;">
+                                <label style="margin-bottom:8px;">Model Accuracy (Backtest)</label>
+                                <div style="font-size:12px; color:#4b5563;">
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                                        <span>Best Model:</span>
+                                        <span style="font-weight:600; color:#111827;">{{ accuracy_metrics.best_model }}</span>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                                        <span>R-squared:</span>
+                                        <span style="font-weight:600; color:#111827;">{{ accuracy_metrics.r2|floatformat:2 }}</span>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                                        <span>MAE:</span>
+                                        <span style="font-weight:600; color:#111827;">{{ accuracy_metrics.mae|floatformat:2 }}</span>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between;">
+                                        <span>MAPE:</span>
+                                        <span style="font-weight:600; color:#111827;">{{ accuracy_metrics.mape|floatformat:2 }}%</span>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="hc-row" style="margin-top:8px;"><label><input id="hc-ci-checkbox" class="hc-small-checkbox" type="checkbox" /> Show confidence intervals (if available)</label></div>
                             <div class="hc-forecast-actions"><button type="button" class="cancel">Cancel</button><button type="button" class="apply">Apply</button></div>
                             `;

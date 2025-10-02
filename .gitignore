@@ -23,3 +23,7 @@ staticfiles/
 
 #Uploaded media files
 kyc_documents/
+
+node_modules/
+
+static/vendor/
